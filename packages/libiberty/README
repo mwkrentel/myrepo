@@ -1,0 +1,26 @@
+----------------------
+Libiberty Build Notes
+----------------------
+
+Home: https://www.gnu.org/software/binutils/
+
+Download: <GNU mirror>/gnu/binutils/binutils-2.28.tar.bz2
+
+License: GPL and LGPL
+
+Autotools package, part of GNU binutils.
+
+cd libiberty
+./configure  \
+    CFLAGS='-fPIC ...'  \
+    --prefix=PATH  \
+    --enable-install-libiberty
+
+Notes
+1. Libiberty is distributed as part of binutils and gcc.
+
+2. We build libiberty.a static with -fPIC in order to link into
+libsymtabAPI.so as a prereq for dyninst.  Building a separate
+libiberty means that we don't have to build all of binutils with
+-fPIC.
+

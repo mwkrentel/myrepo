@@ -1,0 +1,19 @@
+Disable transactional memory.  The test in tbb_config.h assumes that
+all x86_64 have transactional memory, which is not true.
+
+Fixme: better to run a config test to see if the host machine supports
+transactional memory.
+
+
+diff -Naurb tbb-2018_U1.orig/include/tbb/tbb_config.h tbb-2018_U1/include/tbb/tbb_config.h
+--- tbb-2018_U1.orig/include/tbb/tbb_config.h	2017-09-22 15:20:55.000000000 -0500
++++ tbb-2018_U1/include/tbb/tbb_config.h	2017-10-24 13:26:13.078666780 -0500
+@@ -98,7 +98,7 @@
+ #define __TBB_DEFINE_MIC 1
+ #endif
+ 
+-#define __TBB_TSX_AVAILABLE  ((__TBB_x86_32 || __TBB_x86_64) && !__TBB_DEFINE_MIC)
++#define __TBB_TSX_AVAILABLE  0
+ 
+ /** Presence of compiler features **/
+ 

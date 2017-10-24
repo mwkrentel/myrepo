@@ -1,0 +1,28 @@
+----------------------
+Intel TBB Build Notes
+----------------------
+
+Home: https://www.threadingbuildingblocks.org/
+
+Download: https://github.com/01org/tbb/releases
+
+git clone https://github.com/01org/tbb
+
+License: Apache 2.0
+
+Custom Makefile, awkward to modify, see directions in
+build/index.html.
+
+cd tbb-2018
+make compiler={icc, gcc, clang}
+
+copy include directory + subdirs
+copy libraries from build/linux_*_release/*.so*
+
+Notes
+1. Assumes all x86_64 (except Phi/MIC) have transactional memory,
+which is not true.  For x86 without transactional memory, edit
+include/tbb/tbb_config.h:
+
+#define __TBB_TSX_AVAILABLE  0
+

@@ -22,35 +22,26 @@
 # License along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 ##############################################################################
+
+# Modified for Rice HPCToolkit.
+
 from spack import *
 import glob
 
-
 class IntelTbb(Package):
-    """Widely used C++ template library for task parallelism.
-    Intel Threading Building Blocks (Intel TBB) lets you easily write parallel
-    C++ programs that take full advantage of multicore performance, that are
-    portable and composable, and that have future-proof scalability.
-    """
+    """Intel Threading Building Blocks (Intel TBB) built for Rice
+    HPCToolkit."""
+
     homepage = "http://www.threadingbuildingblocks.org/"
 
     # Only version-specific URL's work for TBB
     version('2018.1', 'b2f2fa09adf44a22f4024049907f774b',
             url='https://github.com/01org/tbb/archive/2018_U1.tar.gz')
-    version('2018.0', 'e54de69981905ad69eb9cf0226b9bf5f9a4ba065',
-            url='https://github.com/01org/tbb/archive/2018.tar.gz')
-    version('2017.6', 'c0a722fd1ae66b40aeab25da6049086ef5f02f17',
-            url='https://github.com/01org/tbb/archive/2017_U6.tar.gz')
-    version('2017.5', '26f720729d322913912e99d1e4a36bd10625d3ca',
-            url='https://github.com/01org/tbb/archive/2017_U5.tar.gz')
-    version('2017.3', '2c451a5bcf6fc31487b98b4b29651c369874277c',
-            url='https://www.threadingbuildingblocks.org/sites/default/files/software_releases/source/tbb2017_20161128oss_src.tgz')
-    version('4.4.4', 'd4cee5e4ca75cab5181834877738619c56afeb71',
-            url='https://www.threadingbuildingblocks.org/sites/default/files/software_releases/source/tbb44_20160413oss_src.tgz')
-    version('4.4.3', '80707e277f69d9b20eeebdd7a5f5331137868ce1',
-            url='https://www.threadingbuildingblocks.org/sites/default/files/software_releases/source/tbb44_20160128oss_src_0.tgz')
 
     provides('tbb')
+
+    # fixme: add a config test for this
+    patch('trans.patch')
 
     def coerce_to_spack(self, tbb_build_subdir):
         for compiler in ["icc", "gcc", "clang"]:
@@ -70,9 +61,7 @@ class IntelTbb(Package):
                         of.write(l)
 
     def install(self, spec, prefix):
-        if spec.satisfies('%gcc@6.1:') and spec.satisfies('@:4.4.3'):
-            raise InstallError('Only TBB 4.4.4 and above build with GCC 6.1!')
-
+        #
         # We need to follow TBB's compiler selection logic to get the proper
         # build + link flags but we still need to use spack's compiler wrappers
         # to accomplish this, we do two things:

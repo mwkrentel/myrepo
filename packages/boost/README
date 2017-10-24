@@ -1,6 +1,6 @@
-==================
+------------------
 Boost Build Notes
-==================
+------------------
 
 Home: http://www.boost.org/
 
@@ -15,6 +15,7 @@ License: Boost Software License
     cflags="$CFLAGS"  \
     cxxflags="$CXXFLAGS"  \
     variant=release  \
+    debug-symbols=on  \
     link=shared  \
     threading=multi  \
     --build-dir="$work_dir"  \
@@ -23,10 +24,7 @@ License: Boost Software License
     --with-thread  \
     ...
 
-Now build libraries for dyninst: atomic, chrono, date_time, system,
-thread.
-
-The full boost package is quite large (70 Meg tar file, 540 Meg
-unpacked).  The boost-headers tar file is the original tar file minus
-the doc, libs, status and tools subdirectories.
+Notes
+1. Dyninst uses libraries: atomic, chrono, date_time, filesystem,
+system, and thread.
 

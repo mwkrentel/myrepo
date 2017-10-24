@@ -22,96 +22,31 @@
 # License along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 ##############################################################################
+
+# Modified for Rice HPCToolkit.
+
 from spack import *
 import sys
 import os
 
-
 class Boost(Package):
-    """Boost provides free peer-reviewed portable C++ source
-       libraries, emphasizing libraries that work well with the C++
-       Standard Library.
+    """Boost C++ libraries built for Rice HPCToolkit."""
 
-       Boost libraries are intended to be widely useful, and usable
-       across a broad spectrum of applications. The Boost license
-       encourages both commercial and non-commercial use.
-    """
     homepage = "http://www.boost.org"
-    url      = "http://downloads.sourceforge.net/project/boost/boost/1.55.0/boost_1_55_0.tar.bz2"
+    url = "http://downloads.sourceforge.net/project/boost/boost/1.65.1/boost_1_65_1.tar.bz2"
     list_url = "http://sourceforge.net/projects/boost/files/boost/"
     list_depth = 1
 
-    version('develop',
-            git='https://github.com/boostorg/boost.git',
-            branch='develop',
-            submodules=True)
-
-    version('1.65.1', '41d7542ce40e171f3f7982aff008ff0d',
-            url='https://dl.bintray.com/boostorg/release/1.65.1/source/boost_1_65_1.tar.bz2')
-    version('1.65.0', '5512d3809801b0a1b9dd58447b70915d',
-            url='https://dl.bintray.com/boostorg/release/1.65.0/source/boost_1_65_0.tar.bz2')
-    # NOTE: 1.64.0 seems fine for *most* applications, but if you need
-    #       +python and +mpi, there seem to be errors with out-of-date
-    #       API calls from mpi/python.
-    #       See: https://github.com/LLNL/spack/issues/3963
-    version('1.64.0', '93eecce2abed9d2442c9676914709349')
-    version('1.63.0', '1c837ecd990bb022d07e7aab32b09847')
-    version('1.62.0', '5fb94629535c19e48703bdb2b2e9490f')
-    version('1.61.0', '6095876341956f65f9d35939ccea1a9f')
-    version('1.60.0', '65a840e1a0b13a558ff19eeb2c4f0cbe')
-    version('1.59.0', '6aa9a5c6a4ca1016edd0ed1178e3cb87')
-    version('1.58.0', 'b8839650e61e9c1c0a89f371dd475546')
-    version('1.57.0', '1be49befbdd9a5ce9def2983ba3e7b76')
-    version('1.56.0', 'a744cf167b05d72335f27c88115f211d')
-    version('1.55.0', 'd6eef4b4cacb2183f2bf265a5a03a354')
-    version('1.54.0', '15cb8c0803064faef0c4ddf5bc5ca279')
-    version('1.53.0', 'a00d22605d5dbcfb4c9936a9b35bc4c2')
-    version('1.52.0', '3a855e0f919107e0ca4de4d84ad3f750')
-    version('1.51.0', '4b6bd483b692fd138aef84ed2c8eb679')
-    version('1.50.0', '52dd00be775e689f55a987baebccc462')
-    version('1.49.0', '0d202cb811f934282dea64856a175698')
-    version('1.48.0', 'd1e9a7a7f532bb031a3c175d86688d95')
-    version('1.47.0', 'a2dc343f7bc7f83f8941e47ed4a18200')
-    version('1.46.1', '7375679575f4c8db605d426fc721d506')
-    version('1.46.0', '37b12f1702319b73876b0097982087e0')
-    version('1.45.0', 'd405c606354789d0426bc07bea617e58')
-    version('1.44.0', 'f02578f5218f217a9f20e9c30e119c6a')
-    version('1.43.0', 'dd49767bfb726b0c774f7db0cef91ed1')
-    version('1.42.0', '7bf3b4eb841b62ffb0ade2b82218ebe6')
-    version('1.41.0', '8bb65e133907db727a2a825c5400d0a6')
-    version('1.40.0', 'ec3875caeac8c52c7c129802a8483bd7')
-    version('1.39.0', 'a17281fd88c48e0d866e1a12deecbcc0')
-    version('1.38.0', '5eca2116d39d61382b8f8235915cb267')
-    version('1.37.0', '8d9f990bfb7e83769fa5f1d6f065bc92')
-    version('1.36.0', '328bfec66c312150e4c2a78dcecb504b')
-    version('1.35.0', 'dce952a7214e72d6597516bcac84048b')
-    version('1.34.1', '2d938467e8a448a2c9763e0a9f8ca7e5')
-    version('1.34.0', 'ed5b9291ffad776f8757a916e1726ad0')
+    version('1.65.1', '41d7542ce40e171f3f7982aff008ff0d')
 
     default_install_libs = set(['atomic',
                                 'chrono',
                                 'date_time',
                                 'filesystem',
-                                'graph',
-                                'iostreams',
-                                'locale',
-                                'log',
-                                'math',
-                                'program_options',
-                                'random',
-                                'regex',
-                                'serialization',
-                                'signals',
                                 'system',
-                                'test',
-                                'thread',
-                                'timer',
-                                'wave'])
+                                'thread'])
 
-    # mpi/python are not installed by default because they pull in many
-    # dependencies and/or because there is a great deal of customization
-    # possible (and it would be difficult to choose sensible defaults)
-    default_noinstall_libs = set(['mpi', 'python'])
+    default_noinstall_libs = set([])
 
     all_libs = default_install_libs | default_noinstall_libs
 
@@ -127,44 +62,8 @@ class Boost(Package):
             description="Build multi-threaded versions of libraries")
     variant('singlethreaded', default=False,
             description="Build single-threaded versions of libraries")
-    variant('icu', default=False,
-            description="Build with Unicode and ICU suport")
-    variant('graph', default=False,
-            description="Build the Boost Graph library")
-    variant('taggedlayout', default=False,
-            description="Augment library names with build options")
-    variant('versionedlayout', default=False,
-            description="Augment library layout with versioned subdirs")
     variant('clanglibcpp', default=False,
             description='Compile with clang libc++ instead of libstdc++')
-
-    depends_on('icu4c', when='+icu')
-    depends_on('python', when='+python')
-    depends_on('mpi', when='+mpi')
-    depends_on('bzip2', when='+iostreams')
-    depends_on('zlib', when='+iostreams')
-
-    conflicts('+taggedlayout', when='+versionedlayout')
-
-    # Patch fix from https://svn.boost.org/trac/boost/ticket/11856
-    patch('boost_11856.patch', when='@1.60.0%gcc@4.4.7')
-
-    # Patch fix from https://svn.boost.org/trac/boost/ticket/11120
-    patch('python_jam.patch', when='@1.56.0: ^python@3:')
-    patch('python_jam_pre156.patch', when='@:1.55.0 ^python@3:')
-
-    # Patch fix from https://svn.boost.org/trac/boost/ticket/10125
-    patch('boost_10125.patch', when='@1.55.0%gcc@5.0:5.9')
-
-    # Patch fix for IBM XL compiler
-    patch('xl_1_62_0_le.patch', when='@1.62.0%xl_r')
-    patch('xl_1_62_0_le.patch', when='@1.62.0%xl')
-
-    patch('call_once_variadic.patch', when='@:1.55.9999%gcc@5:')
-
-    # Patch fix for PGI compiler
-    patch('boost_1.63.0_pgi.patch', when='@1.63.0%pgi')
-    patch('boost_1.63.0_pgi_17.4_workaround.patch', when='@1.63.0%pgi@17.4')
 
     def url_for_version(self, version):
         url = "http://downloads.sourceforge.net/project/boost/boost/{0}/boost_{1}.tar.bz2"
@@ -203,9 +102,6 @@ class Boost(Package):
         options.append('--with-toolset=%s' % boostToolsetId)
         options.append("--with-libraries=%s" % ','.join(withLibs))
 
-        if '+python' in spec:
-            options.append('--with-python=%s' % spec['python'].command.path)
-
         with open('user-config.jam', 'w') as f:
             # Boost may end up using gcc even though clang+gfortran is set in
             # compilers.yaml. Make sure this does not happen:
@@ -218,40 +114,11 @@ class Boost(Package):
                 f.write("using {0} : : {1} ;\n".format(boostToolsetId,
                                                        spack_cxx))
 
-            if '+mpi' in spec:
-
-                # Use the correct mpi compiler.  If the compiler options are
-                # empty or undefined, Boost will attempt to figure out the
-                # correct options by running "${mpicxx} -show" or something
-                # similar, but that doesn't work with the Cray compiler
-                # wrappers.  Since Boost doesn't use the MPI C++ bindings,
-                # that can be used as a compiler option instead.
-
-                mpi_line = 'using mpi : %s' % spec['mpi'].mpicxx
-
-                if 'platform=cray' in spec:
-                    mpi_line += ' : <define>MPICH_SKIP_MPICXX'
-
-                f.write(mpi_line + ' ;\n')
-
-            if '+python' in spec:
-                f.write(self.bjam_python_line(spec))
-
     def determine_b2_options(self, spec, options):
         if '+debug' in spec:
             options.append('variant=debug')
         else:
             options.append('variant=release')
-
-        if '+icu_support' in spec:
-            options.extend(['-s', 'ICU_PATH=%s' % spec['icu'].prefix])
-
-        if '+iostreams' in spec:
-            options.extend([
-                '-s', 'BZIP2_INCLUDE=%s' % spec['bzip2'].prefix.include,
-                '-s', 'BZIP2_LIBPATH=%s' % spec['bzip2'].prefix.lib,
-                '-s', 'ZLIB_INCLUDE=%s' % spec['zlib'].prefix.include,
-                '-s', 'ZLIB_LIBPATH=%s' % spec['zlib'].prefix.lib])
 
         linkTypes = ['static']
         if '+shared' in spec:
@@ -266,20 +133,18 @@ class Boost(Package):
             raise RuntimeError("At least one of {singlethreaded, " +
                                "multithreaded} must be enabled")
 
-        if '+taggedlayout' in spec:
-            layout = 'tagged'
-        elif '+versionedlayout' in spec:
-            layout = 'versioned'
-        else:
-            if len(threadingOpts) > 1:
-                raise RuntimeError("Cannot build both single and " +
-                                   "multi-threaded targets with system layout")
-            layout = 'system'
+        if len(threadingOpts) > 1:
+            raise RuntimeError("Cannot build both single and " +
+                               "multi-threaded targets with system layout")
+        layout = 'system'
 
         options.extend([
             'link=%s' % ','.join(linkTypes),
             '--layout=%s' % layout
         ])
+
+        # the equivalent of -g
+        options.append('debug-symbols=on')
 
         if not spec.satisfies('%intel'):
             options.extend([
@@ -329,20 +194,6 @@ class Boost(Package):
             dst = join_path(prefix, 'include', 'boost')
             install_tree(src, dst)
             return
-
-        # Remove libraries that the release version does not support
-        if not spec.satisfies('@1.54.0:'):
-            withLibs.remove('log')
-        if not spec.satisfies('@1.53.0:'):
-            withLibs.remove('atomic')
-        if not spec.satisfies('@1.48.0:'):
-            withLibs.remove('locale')
-        if not spec.satisfies('@1.47.0:'):
-            withLibs.remove('chrono')
-        if not spec.satisfies('@1.43.0:'):
-            withLibs.remove('random')
-        if '+graph' in spec and '+mpi' in spec:
-            withLibs.append('graph_parallel')
 
         # to make Boost find the user-config.jam
         env['BOOST_BUILD_PATH'] = './'

@@ -1,6 +1,6 @@
-=====================
+---------------------
 Elfutils Build Notes
-=====================
+---------------------
 
 Home: https://fedorahosted.org/elfutils/
 
@@ -10,7 +10,7 @@ git clone git://git.fedorahosted.org/git/elfutils.git
 
 License: GPL and LGPL
 
-Uses Autoconf and Automake, supports vpath builds and parallel make.
+Autotools package.
 
 ./configure  \
     --prefix=PATH  \
@@ -21,14 +21,19 @@ make -j 4
 make install
 cp elf.h prefix/include/
 
-1. Elfutils requires zlib as a prerequisite, but does not use
+Notes
+1. The treatment of maintainer mode is misleading.  The released
+tarballs include the generated files (what maintainer mode means), so
+we don't need flex or bison.
+
+2. Elfutils requires zlib as a prerequisite, but does not use
 --with-zlib as the path to zlib install.  Instead, specify zlib
 directories with CPPFLAGS and LDFLAGS.
 
-2. Dyninst no longer runs with old libelf-0.8.13 and will segfault in
-Dyninst::Elf_X_Data::d_buf().  So, we switch to elfutils.
+3. May want to rethink the gettext prereq, and may want to add zlib,
+bzip and xz (lzma) as explicit prereqs.
 
-3. Elfutils is closely tied to elf.h.  So, we add elf.h to the install
-directory so that files that #include <libelf.h> will pick up this
-version.
+4. May want to add elf.h to the install directory.
+
+5. May want to uninstall or hide files in the bin install directory.
 

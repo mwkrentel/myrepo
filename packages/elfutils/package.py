@@ -22,35 +22,41 @@
 # License along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 ##############################################################################
+
+# Modified for Rice HPCToolkit.
+
 from spack import *
 
-
 class Elfutils(AutotoolsPackage):
-    """elfutils is a collection of various binary tools such as
-    eu-objdump, eu-readelf, and other utilities that allow you to
-    inspect and manipulate ELF files. Refer to Table 5.Tools Included
-    in elfutils for Red Hat Developer for a complete list of binary
-    tools that are distributed with the Red Hat Developer Toolset
-    version of elfutils."""
+    """Elfutils built for Rice HPCToolkit."""
 
     homepage = "https://fedorahosted.org/elfutils/"
 
-    url = "https://sourceware.org/elfutils/ftp/0.168/elfutils-0.168.tar.bz2"
+    url = "https://sourceware.org/elfutils/ftp/0.170/elfutils-0.170.tar.bz2"
     list_url = "https://sourceware.org/elfutils/ftp"
     list_depth = 1
 
     version('0.170', '03599aee98c9b726c7a732a2dd0245d5')
-    version('0.168', '52adfa40758d0d39e5d5c57689bf38d6')
-    version('0.163', '77ce87f259987d2e54e4d87b86cbee41', preferred=True)
 
-    depends_on('flex', type='build')
-    depends_on('bison', type='build')
     depends_on('gettext')
 
     provides('elf@1')
+
+    # set default cflags (if not specified), always add -g, and
+    # disable -Werror (too dangerous).
+    def cflags_handler(self, spack_env, flag_val):
+        flag_name = flag_val[0].upper()
+        flags = flag_val[1]
+
+        if flags == []: flags = ['-g', '-O2']
+        if '-g' not in flags: flags.insert(0, '-g')
+        flags.append('-Wno-error')
+
+        spack_env.set(flag_name, ' '.join(flags))
+        return []
 
     def configure_args(self):
         # configure doesn't use LIBS correctly
         return [
             'LDFLAGS=-L%s -lintl' % self.spec['gettext'].prefix.lib,
-            '--enable-maintainer-mode']
+            '--disable-maintainer-mode']

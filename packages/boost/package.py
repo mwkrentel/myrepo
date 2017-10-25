@@ -44,7 +44,8 @@ class Boost(Package):
                                 'date_time',
                                 'filesystem',
                                 'system',
-                                'thread'])
+                                'thread',
+                                'timer'])
 
     default_noinstall_libs = set([])
 

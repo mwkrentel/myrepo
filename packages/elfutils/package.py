@@ -38,7 +38,9 @@ class Elfutils(AutotoolsPackage):
 
     version('0.170', '03599aee98c9b726c7a732a2dd0245d5')
 
-    depends_on('gettext')
+    depends_on('bzip2', type='link')
+    depends_on('xz', type='link')
+    depends_on('zlib', type='link')
 
     provides('elf@1')
 
@@ -55,8 +57,31 @@ class Elfutils(AutotoolsPackage):
         spack_env.set(flag_name, ' '.join(flags))
         return []
 
+    # elfutils doesn't accept --with-zlib=prefix, so we have to
+    # specify paths via CPPFLAGS and LDFLAGS.
+    def cppflags_handler(self, spack_env, flag_val):
+        flag_name = flag_val[0].upper()
+        flags = flag_val[1]
+
+        flags.append('-I%s' % self.spec['bzip2'].prefix.include)
+        flags.append('-I%s' % self.spec['xz'].prefix.include)
+        flags.append('-I%s' % self.spec['zlib'].prefix.include)
+
+        spack_env.set(flag_name, ' '.join(flags))
+        return []
+
+    def ldflags_handler(self, spack_env, flag_val):
+        flag_name = flag_val[0].upper()
+        flags = flag_val[1]
+
+        flags.append('-L%s' % self.spec['bzip2'].prefix.lib)
+        flags.append('-L%s' % self.spec['xz'].prefix.lib)
+        flags.append('-L%s' % self.spec['zlib'].prefix.lib)
+
+        spack_env.set(flag_name, ' '.join(flags))
+        return []
+
+    # disable maintainer mode, so we don't need flex or bison
     def configure_args(self):
-        # configure doesn't use LIBS correctly
-        return [
-            'LDFLAGS=-L%s -lintl' % self.spec['gettext'].prefix.lib,
-            '--disable-maintainer-mode']
+        return [ '--disable-maintainer-mode' ]
+

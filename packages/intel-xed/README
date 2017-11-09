@@ -1,0 +1,36 @@
+----------------------
+Intel XED Build Notes
+----------------------
+
+Home: https://intelxed.github.io
+
+Old: https://software.intel.com/en-us/articles/xed-x86-encoder-decoder-software-library
+
+Git: https://github.com/intelxed
+
+git clone https://github.com/intelxed/xed
+git clone https://github.com/intelxed/mbuild
+
+Uses own mfile.py build system, see './mfile.py -h' for options.
+
+./mfile.py  \
+    -j 4   \
+    --debug  \
+    --opt=2  \
+    --no-encoder  \
+    --no-werror
+
+Notes:
+1. Requires mbuild source tree nearby: side-by-side works, or put
+mbuild inside xed (no option to specify alternate location).
+
+2. The --prefix option doesn't fully work (--prefix breaks --shared),
+so we install include and libs manually.
+
+3. Doesn't build static and shared in the same build, default is
+static, add --shared for .so libs.
+
+4. We only use decoder functions.
+
+5. Fixme: read cflags from spec and translate to mfile syntax.
+

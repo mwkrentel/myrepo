@@ -54,14 +54,17 @@ class IntelXed(Package):
     def install(self, spec, prefix):
         mfile = Executable('./mfile.py')
 
+        opts = ['-j', str(make_jobs),
+                '--debug',
+                '--opt=2',
+                '--no-encoder',
+                '--no-werror']
+
         # build and install static libxed.a
         mfile('--clean')
-        mfile('-j', str(make_jobs),
-              '--debug',
-              '--opt=2',
-              '--no-encoder',
-              '--no-werror')
+        mfile(*opts)
 
+        mkdirp(prefix.include)
         mkdirp(prefix.lib)
 
         libs = glob.glob(join_path('obj', 'lib*.a'))
@@ -70,16 +73,14 @@ class IntelXed(Package):
 
         # build and install shared libxed.so
         mfile('--clean')
-        mfile('-j', str(make_jobs),
-              '--debug',
-              '--opt=2',
-              '--shared',
-              '--no-encoder',
-              '--no-werror')
+        mfile('--shared', *opts)
 
         libs = glob.glob(join_path('obj', 'lib*.so'))
         for lib in libs:
             install(lib, prefix.lib)
 
         # install header files
-        install_tree(join_path('include', 'public'), prefix.include)
+        hdrs = glob.glob(join_path('include', 'public', 'xed', '*.h'))  \
+             + glob.glob(join_path('obj', '*.h'))
+        for hdr in hdrs:
+            install(hdr, prefix.include)

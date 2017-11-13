@@ -154,6 +154,7 @@ set --  \
     -L${dyninst_lib}  \
     -lparseAPI  -linstructionAPI  -lsymtabAPI  \
     -ldynDwarf  -ldynElf  -lcommon  \
+    -L${boost_lib}  -lboost_system  \
     -L${libelf_lib}  -lelf  \
     -L${libdwarf_lib}  -ldw  \
     -L${tbb_lib}  -ltbb  \

@@ -22,20 +22,33 @@
 # License along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 ##############################################################################
+
+# Modified for Rice HPCToolkit.
+
 from spack import *
 
-
 class XercesC(AutotoolsPackage):
-    """Xerces-C++ is a validating XML parser written in a portable subset of
-    C++. Xerces-C++ makes it easy to give your application the ability to read
-    and write XML data. A shared library is provided for parsing, generating,
-    manipulating, and validating XML documents using the DOM, SAX, and SAX2
-    APIs."""
+    """The Xerces-C++ XML parser built for Rice HPCToolkit."""
 
     homepage = "https://xerces.apache.org/xerces-c"
-    url      = "https://archive.apache.org/dist/xerces/c/3/sources/xerces-c-3.1.4.tar.bz2"
+    url = "https://archive.apache.org/dist/xerces/c/3/sources/xerces-c-3.1.4.tar.bz2"
 
     version('3.1.4', 'd04ae9d8b2dee2157c6db95fa908abfd')
 
+    patch('static-const.patch')
+
+    # replace empty CXXFLAGS with '-g -O2'
+    def cxxflags_handler(self, spack_env, flag_val):
+        flag_name = flag_val[0].upper()
+        flags = flag_val[1]
+        if flags == []: flags = ['-g', '-O2']
+
+        spack_env.set(flag_name, ' '.join(flags))
+        return []
+
     def configure_args(self):
-        return ['--disable-network']
+        args = ['--enable-transcoder-iconv',
+                '--disable-network',
+                '--without-curl']
+
+        return args

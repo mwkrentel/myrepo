@@ -1,23 +1,29 @@
-=====================
+---------------------
 Xerces-C Build Notes
-=====================
+---------------------
 
-Home: http://xerces.apache.org/xerces-c/index.html
+Home: http://xerces.apache.org/xerces-c/
 
-Download: ftp://mirror.anl.gov/pub/apache/xerces/c/3/sources/
-	  xerces-c-3.1.1.tar.gz
+Download: http://archive.apache.org/dist/xerces/c/3/sources/
+          xerces-c-3.1.4.tar.bz2
 
 License: Apache
 
 Build: http://xerces.apache.org/xerces-c/build-3.html
 
-Now fully Autoconf and Automake, parallel make, vpath builds.
+Version 3.1.x uses autotools, starting with 3.2.x, now uses cmake.
 
-../configure  --prefix=PATH
-    CC=  CFLAGS=  CXX=  CXXFLAGS=
-    --enable-transcoder-iconv
+./configure  \
+    CC=  CFLAGS=  \
+    CXX=  CXXFLAGS=  \
+    --prefix=PATH  \
+    --enable-transcoder-iconv  \
+    --without-curl
+
 make -j 4
 make install
 
-The default transcoder changed from iconv in 2.8 to gnuiconv in 3.1.1.
-Gnuiconv causes problems on the Cray XT, so use iconv instead.
+Notes
+1. The default transcoder, gnuiconv, causes problems on the Cray XT,
+so use iconv instead.
+

@@ -1,0 +1,17 @@
+Fix the typedef for struct Elf in libdwarf.h.  This is duplicated in
+libelf.h.  Newer compilers (gcc 4.8) are ok with the duplication, but
+for older compilers (gcc 4.4 on powerpc), this was breaking the build.
+
+
+diff -Naurb dwarf-20170709.orig/libdwarf/libdwarf.h.in dwarf-20170709/libdwarf/libdwarf.h.in
+--- dwarf-20170709.orig/libdwarf/libdwarf.h.in	2017-05-30 15:26:59.000000000 -0500
++++ dwarf-20170709/libdwarf/libdwarf.h.in	2017-11-20 15:29:03.878608789 -0600
+@@ -60,7 +60,7 @@
+ 
+ */
+ 
+-typedef struct Elf Elf;
++struct Elf;
+ typedef struct Elf* dwarf_elf_handle;
+ 
+ /* To enable printing with printf regardless of the

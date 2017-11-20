@@ -22,83 +22,55 @@
 # License along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 ##############################################################################
+
+# Modified for Rice HPCToolkit.
+
 from spack import *
 
-# Only build certain parts of dwarf because the other ones break.
-dwarf_dirs = ['libdwarf', 'dwarfdump2']
-
-
 class Libdwarf(Package):
-    """The DWARF Debugging Information Format is of interest to
-       programmers working on compilers and debuggers (and any one
-       interested in reading or writing DWARF information). It was
-       developed by a committee (known as the PLSIG at the time)
-       starting around 1991. Starting around 1991 SGI developed the
-       libdwarf and dwarfdump tools for internal use and as part of
-       SGI IRIX developer tools. Since that time dwarfdump and
-       libdwarf have been shipped (as an executable and archive
-       respectively, not source) with every release of the SGI
-       MIPS/IRIX C compiler."""
+    """Libdwarf built for Rice HPCToolkit.  This version only builds
+    libdwarf, not dwarfdump."""
 
     homepage = "http://www.prevanders.net/dwarf.html"
-    url      = "http://www.prevanders.net/libdwarf-20160507.tar.gz"
-    list_url = homepage
+    url = "https://www.prevanders.net/libdwarf-20170709.tar.gz"
 
-    version('20160507', 'ae32d6f9ece5daf05e2d4b14822ea811')
-    version('20130729', '4cc5e48693f7b93b7aa0261e63c0e21d')
-    version('20130207', '64b42692e947d5180e162e46c689dfbf')
-    version('20130126', 'ded74a5e90edb5a12aac3c29d260c5db')
-    depends_on("elf", type='link')
+    version('20170709', '68a3c9aa7d01a433924a74bda588b378')
 
-    parallel = False
+    depends_on('elfutils', type='link')
+    depends_on('zlib', type='link')
 
-    def patch(self):
-        filter_file(r'^typedef struct Elf Elf;$', '', 'libdwarf/libdwarf.h.in')
+    patch('make.patch')
+    patch('typedef.patch')
 
+    parallel=False
+
+    # fixme: read cflags from spec and pass to configure
     def install(self, spec, prefix):
 
-        # elfutils contains a dwarf.h that conflicts with libdwarf's
-        # TODO: we should remove this when we can modify the include order
-        hide_list = []
-        if spec.satisfies('^elfutils'):
-            dwarf_h = join_path(spec['elfutils'].prefix, 'include/dwarf.h')
-            hide_list.append(dwarf_h)
-        with hide_files(*hide_list):
-            # dwarf build does not set arguments for ar properly
-            make.add_default_arg('ARFLAGS=rcs')
+        mkdirp(prefix.include, prefix.lib)
 
-            # Dwarf doesn't provide an install, so we have to do it.
-            mkdirp(prefix.bin, prefix.include, prefix.lib, prefix.man.man1)
+        opts = ['CPPFLAGS=-I%s -I%s' % (spec['elfutils'].prefix.include,
+                                        spec['zlib'].prefix.include),
+                'LDFLAGS=-L%s -L%s'  % (spec['elfutils'].prefix.lib,
+                                        spec['zlib'].prefix.lib)]
+
+        # the spack wrappers put the elf include dir ahead of our
+        # patched makefile, so we have to hide elf's dwarf.h.
+        dwarf_h = join_path(spec['elfutils'].prefix, 'include/dwarf.h')
+
+        with hide_files(dwarf_h):
 
             with working_dir('libdwarf'):
-                extra_config_args = []
-
-                # this is to prevent picking up system /usr/include/libelf.h
-                if spec.satisfies('^libelf'):
-                    libelf_inc_dir = join_path(spec['libelf'].prefix,
-                                               'include/libelf')
-                    extra_config_args.append('CFLAGS=-I{0}'.format(
-                                             libelf_inc_dir))
-                configure("--prefix=" + prefix, "--enable-shared",
-                          *extra_config_args)
+                #
+                # this version builds both a shared library and a
+                # static library with -fPIC.  the --disable-fpic
+                # option is broken, so a static library without -fPIC
+                # requires hacking the configure script.
+                #
+                configure('--enable-shared', *opts)
                 make()
 
-                install('libdwarf.a',  prefix.lib)
+                install('dwarf.h', prefix.include)
+                install('libdwarf.h', prefix.include)
+                install('libdwarf.a', prefix.lib)
                 install('libdwarf.so', prefix.lib)
-                install('libdwarf.h',  prefix.include)
-                install('dwarf.h',     prefix.include)
-
-            if spec.satisfies('@20130126:20130729'):
-                dwarfdump_dir = 'dwarfdump2'
-            else:
-                dwarfdump_dir = 'dwarfdump'
-            with working_dir(dwarfdump_dir):
-                configure("--prefix=" + prefix)
-
-                # This makefile has strings of copy commands that
-                # cause a race in parallel
-                make(parallel=False)
-
-                install('dwarfdump',      prefix.bin)
-                install('dwarfdump.conf', prefix.lib)
-                install('dwarfdump.1',    prefix.man.man1)

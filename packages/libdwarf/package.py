@@ -26,6 +26,7 @@
 # Modified for Rice HPCToolkit.
 
 from spack import *
+import os
 
 class Libdwarf(Package):
     """Libdwarf built for Rice HPCToolkit.  This version only builds
@@ -46,20 +47,19 @@ class Libdwarf(Package):
 
     # fixme: read cflags from spec and pass to configure
     def install(self, spec, prefix):
-
         mkdirp(prefix.include, prefix.lib)
 
         opts = ['CPPFLAGS=-I%s -I%s' % (spec['elfutils'].prefix.include,
                                         spec['zlib'].prefix.include),
                 'LDFLAGS=-L%s -L%s'  % (spec['elfutils'].prefix.lib,
                                         spec['zlib'].prefix.lib)]
+        soname = 'libdwarf.so.1'
 
         # the spack wrappers put the elf include dir ahead of our
         # patched makefile, so we have to hide elf's dwarf.h.
         dwarf_h = join_path(spec['elfutils'].prefix, 'include/dwarf.h')
 
         with hide_files(dwarf_h):
-
             with working_dir('libdwarf'):
                 #
                 # this version builds both a shared library and a
@@ -73,4 +73,6 @@ class Libdwarf(Package):
                 install('dwarf.h', prefix.include)
                 install('libdwarf.h', prefix.include)
                 install('libdwarf.a', prefix.lib)
-                install('libdwarf.so', prefix.lib)
+                install('libdwarf.so', join_path(prefix.lib, soname))
+                with working_dir(prefix.lib):
+                    os.symlink(soname, 'libdwarf.so')

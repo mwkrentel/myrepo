@@ -31,6 +31,8 @@
 ##############################################################################
 
 from spack import *
+import os
+import shutil
 
 class Libiberty(AutotoolsPackage):
     """The libiberty.a library from GNU binutils built static with
@@ -43,21 +45,31 @@ class Libiberty(AutotoolsPackage):
 
     default_cflags = ['-g', '-O']
 
-    # configure and build just libiberty
+    # configure and build just libiberty subdir
     @property
     def configure_directory(self):
         return join_path(self.stage.source_path, 'libiberty')
 
-    # add -fPIC to CFLAGS, and "correct" empty CFLAGS to '-g -O'
-    def cflags_handler(self, spack_env, flag_val):
-        flag_name = flag_val[0].upper()
-        flags = flag_val[1]
-        if flags == []: flags = self.default_cflags
+    # add -fPIC to CFLAGS and move to the configure command line.
+    # if original cflags is empty, then we must set the default or
+    # else fpic is the only flag.
+    def flag_handler(self, name, flags):
+        if name != 'cflags': return (flags, None, None)
 
-        spack_env.set(flag_name, ' '.join(flags))
-        spack_env.append_flags(flag_name, self.compiler.pic_flag)
-        return []
+        if flags == []: flags = self.default_cflags
+        flags.append(self.compiler.pic_flag)
+        return (None, None, flags)
 
     def configure_args(self):
         args = ['--enable-install-libiberty']
         return args
+
+    # copy libiberty.a to lib, libiberty puts it in lib64
+    @run_after('install')
+    def copy_library(self):
+        lib_file = join_path(self.prefix.lib, 'libiberty.a')
+        lib64_file = join_path(self.prefix.lib64, 'libiberty.a')
+
+        if not os.path.isfile(lib_file):
+            mkdirp(self.prefix.lib)
+            shutil.copy(lib64_file, lib_file)

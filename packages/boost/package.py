@@ -30,7 +30,8 @@ import sys
 import os
 
 class Boost(Package):
-    """Boost C++ libraries built for Rice HPCToolkit."""
+    """Boost C++ libraries built for Rice HPCToolkit.  This version builds
+    only a subset of libraries needed as prerequisites for Dyninst."""
 
     homepage = "http://www.boost.org"
     url = "http://downloads.sourceforge.net/project/boost/boost/1.65.1/boost_1_65_1.tar.bz2"

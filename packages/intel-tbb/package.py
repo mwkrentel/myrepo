@@ -38,8 +38,6 @@ class IntelTbb(Package):
     version('2018.1', 'b2f2fa09adf44a22f4024049907f774b',
             url='https://github.com/01org/tbb/archive/2018_U1.tar.gz')
 
-    provides('tbb')
-
     # fixme: add a config test for this
     patch('trans.patch')
 

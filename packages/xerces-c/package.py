@@ -37,18 +37,17 @@ class XercesC(AutotoolsPackage):
 
     patch('static-const.patch')
 
-    # replace empty CXXFLAGS with '-g -O2'
-    def cxxflags_handler(self, spack_env, flag_val):
-        flag_name = flag_val[0].upper()
-        flags = flag_val[1]
-        if flags == []: flags = ['-g', '-O2']
+    default_cflags = ['-g', '-O2']
 
-        spack_env.set(flag_name, ' '.join(flags))
-        return []
+    # replace empty CXXFLAGS with '-g -O2'
+    def flag_handler(self, name, flags):
+        if name != 'cxxflags': return (flags, None, None)
+
+        if flags == []: flags = self.default_cflags
+        return (None, None, flags)
 
     def configure_args(self):
         args = ['--enable-transcoder-iconv',
                 '--disable-network',
                 '--without-curl']
-
         return args

@@ -30,6 +30,10 @@ we don't need flex or bison.
 --with-zlib as the path to zlib install.  Instead, specify zlib
 directories with CPPFLAGS and LDFLAGS.
 
+Now with spack, the -I and -L paths are automagically added to the
+compiler wrapper for dependencies, so these are not needed for
+CPPFLAGS and LDFLAGS.
+
 3. May want to rethink the gettext prereq, and may want to add zlib,
 bzip and xz (lzma) as explicit prereqs.
 

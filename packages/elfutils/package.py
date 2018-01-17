@@ -42,46 +42,18 @@ class Elfutils(AutotoolsPackage):
     depends_on('xz', type='link')
     depends_on('zlib', type='link')
 
-    provides('elf@1')
+    default_cflags = ['-g', '-O2']
 
     # set default cflags (if not specified), always add -g, and
     # disable -Werror (too dangerous).
-    def cflags_handler(self, spack_env, flag_val):
-        flag_name = flag_val[0].upper()
-        flags = flag_val[1]
+    def flag_handler(self, name, flags):
+        if name != 'cflags': return (flags, None, None)
 
-        if flags == []: flags = ['-g', '-O2']
+        if flags == []: flags = self.default_cflags
         if '-g' not in flags: flags.insert(0, '-g')
         flags.append('-Wno-error')
-
-        spack_env.set(flag_name, ' '.join(flags))
-        return []
-
-    # elfutils doesn't accept --with-zlib=prefix, so we have to
-    # specify paths via CPPFLAGS and LDFLAGS.
-    def cppflags_handler(self, spack_env, flag_val):
-        flag_name = flag_val[0].upper()
-        flags = flag_val[1]
-
-        flags.append('-I%s' % self.spec['bzip2'].prefix.include)
-        flags.append('-I%s' % self.spec['xz'].prefix.include)
-        flags.append('-I%s' % self.spec['zlib'].prefix.include)
-
-        spack_env.set(flag_name, ' '.join(flags))
-        return []
-
-    def ldflags_handler(self, spack_env, flag_val):
-        flag_name = flag_val[0].upper()
-        flags = flag_val[1]
-
-        flags.append('-L%s' % self.spec['bzip2'].prefix.lib)
-        flags.append('-L%s' % self.spec['xz'].prefix.lib)
-        flags.append('-L%s' % self.spec['zlib'].prefix.lib)
-
-        spack_env.set(flag_name, ' '.join(flags))
-        return []
+        return (None, None, flags)
 
     # disable maintainer mode, so we don't need flex or bison
     def configure_args(self):
         return [ '--disable-maintainer-mode' ]
-

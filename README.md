@@ -9,7 +9,7 @@ moved to the HPCToolkit project on github.
 Spack is copyright Lawrence Livermore National Security, LLC, and is
 available as a github project at:
 
-https://github.com/LLNL/spack
+https://github.com/spack
 
 Mark W. Krentel  
 October 2017
@@ -21,7 +21,7 @@ clone both this repository and the main LLNL spack repository.
 
 ```
 git clone https://github.com/mwkrentel/myrepo
-git clone https://github.com/llnl/spack
+git clone https://github.com/spack/spack
 ```
 
 Run the `./setup.sh` script in myrepo to link the myrepo satellite

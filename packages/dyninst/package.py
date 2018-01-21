@@ -22,74 +22,66 @@
 # License along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 ##############################################################################
+
+# Modified for Rice HPCToolkit.
+#
+# Dyninst builds with cmake, but we avoid CMakePackage because that
+# forces always rebuilding cmake (won't accept cmake on path).
+#
+# Also, we only build a subset of libraries: symtab, parseapi and
+# prereqs.
+
 from spack import *
 
-
 class Dyninst(Package):
-    """API for dynamic binary instrumentation.  Modify programs while they
-    are executing without recompiling, re-linking, or re-executing."""
+    """Dyninst instrumentation library built for Rice HPCToolkit.
+    This version builds SymtabAPI, ParseAPI and their prerequisites
+    for control-flow analysis."""
 
-    homepage = "https://paradyn.org"
-    url = "https://github.com/dyninst/dyninst/archive/v9.2.0.tar.gz"
-    list_url = "http://www.dyninst.org/downloads/dyninst-8.x"
+    homepage = "https://dyninst.org"
+    url = "https://github.com/dyninst/dyninst"
 
-    version('9.3.2', 'a2bf03b6d1d424853e80d39b13e9c229')
-    version('9.3.0', 'edde7847dc673ca69bd59412af572450')
-    version('9.2.0', 'ad023f85e8e57837ed9de073b59d6bab',
-            url="https://github.com/dyninst/dyninst/archive/v9.2.0.tar.gz")
-    version('9.1.0', '5c64b77521457199db44bec82e4988ac',
-            url="http://www.paradyn.org/release9.1.0/DyninstAPI-9.1.0.tgz")
-    version('8.2.1', 'abf60b7faabe7a2e4b54395757be39c7',
-            url="http://www.paradyn.org/release8.2/DyninstAPI-8.2.1.tgz")
-    version('8.1.2', 'bf03b33375afa66fe0efa46ce3f4b17a',
-            url="http://www.paradyn.org/release8.1.2/DyninstAPI-8.1.2.tgz")
-    version('8.1.1', 'd1a04e995b7aa70960cd1d1fac8bd6ac',
-            url="http://www.paradyn.org/release8.1/DyninstAPI-8.1.1.tgz")
+    version('master', git='https://github.com/dyninst/dyninst.git',
+            branch='master')
 
-    variant('stat_dysect', default=False,
-            description="patch for STAT's DySectAPI")
+    depends_on('boost', type='link')
+    depends_on('elfutils', type='link')
+    depends_on('libiberty', type='link')
 
-    depends_on("elf@0", type='link', when='@:9.2.99')
-    depends_on("elf@1", type='link', when='@9.3.0:')
-    depends_on("libdwarf")
-    depends_on("boost@1.42:")
-    depends_on('cmake', type='build')
-
-    patch('stat_dysect.patch', when='+stat_dysect')
-    patch('stackanalysis_h.patch', when='@9.2.0')
-
-    # new version uses cmake
     def install(self, spec, prefix):
-        if spec.satisfies('@:8.1'):
-            configure("--prefix=" + prefix)
-            make()
-            make("install")
-            return
+        boost_root = spec['boost'].prefix
+        elf_incl = spec['elfutils'].prefix.include
+        elf_lib = join_path(spec['elfutils'].prefix.lib, 'libelf.so')
+        dwarf_lib = join_path(spec['elfutils'].prefix.lib, 'libdw.so')
+        libiberty_lib = join_path(spec['libiberty'].prefix.lib, 'libiberty.a')
 
-        libelf = spec['elf'].prefix
-        libdwarf = spec['libdwarf'].prefix
+        build_subdirs = ['common', 'elf', 'dwarf', 'symtabAPI',
+                         'instructionAPI', 'parseAPI']
 
-        with working_dir('spack-build', create=True):
-            args = ['..',
-                    '-DBoost_INCLUDE_DIR=%s'    % spec['boost'].prefix.include,
-                    '-DBoost_LIBRARY_DIR=%s'    % spec['boost'].prefix.lib,
-                    '-DBoost_NO_SYSTEM_PATHS=TRUE',
-                    '-DLIBELF_INCLUDE_DIR=%s'   % join_path(
-                        libelf.include, 'libelf'),
-                    '-DLIBELF_LIBRARIES=%s'     % join_path(
-                        libelf.lib, 'libelf.so'),
-                    '-DLIBDWARF_INCLUDE_DIR=%s' % libdwarf.include,
-                    '-DLIBDWARF_LIBRARIES=%s'   % join_path(
-                        libdwarf.lib, 'libdwarf.so')]
-            if spec.satisfies('arch=linux-redhat7-ppc64le'):
-                args.append('-Darch_ppc64_little_endian=1')
-            args += std_cmake_args
-            cmake(*args)
-            make()
-            make("install")
+        args = ['.',
+                '-DCMAKE_INSTALL_PREFIX=%s' % prefix,
+                '-DCMAKE_BUILD_TYPE=RelWithDebInfo',
+                '-DCMAKE_C_COMPILER=%s' % self.compiler.cc,
+                '-DCMAKE_CXX_COMPILER=%s' % self.compiler.cxx,
+                '-DUSE_COTIRE=False',
+                '-DBUILD_DOCS=Off',
+                '-DBUILD_RTLIB=Off',
+                '-DBUILD_TARBALLS=Off',
+                '-DPATH_BOOST=%s' % boost_root,
+                '-DLIBELF_INCLUDE_DIR=%s' % elf_incl,
+                '-DLIBELF_LIBRARIES=%s' % elf_lib,
+                '-DLIBDWARF_INCLUDE_DIR=%s' % elf_incl,
+                '-DLIBDWARF_LIBRARIES=%s' % dwarf_lib,
+                '-DIBERTY_LIBRARIES=%s' % libiberty_lib]
 
-    @when('@:8.1')
-    def install(self, spec, prefix):
-        configure("--prefix=" + prefix)
-        make()
-        make("install")
+        cmake(*args)
+
+        # build only symtab, parseapi and prereqs
+        top_src = self.stage.source_path
+        for dir in build_subdirs:
+            with working_dir(join_path(top_src, dir)):
+                make()
+
+        for dir in build_subdirs:
+            with working_dir(join_path(top_src, dir)):
+                make('install')

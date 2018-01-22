@@ -42,11 +42,18 @@ class Dyninst(Package):
     url = "https://github.com/dyninst/dyninst"
 
     version('master', git='https://github.com/dyninst/dyninst.git',
-            branch='master')
+            branch='master', preferred=True)
+
+    version('johnmc', git='https://github.com/jmellorcrummey/dyninst',
+            branch='cumulative-patches')
+
+    version('parallel', git='https://github.com/dyninst/dyninst.git',
+            branch='new-parallel-parsing')
 
     depends_on('boost', type='link')
     depends_on('elfutils', type='link')
     depends_on('libiberty', type='link')
+    depends_on('intel-tbb', type='link', when='@parallel')
 
     def install(self, spec, prefix):
         boost_root = spec['boost'].prefix
@@ -73,6 +80,12 @@ class Dyninst(Package):
                 '-DLIBDWARF_INCLUDE_DIR=%s' % elf_incl,
                 '-DLIBDWARF_LIBRARIES=%s' % dwarf_lib,
                 '-DIBERTY_LIBRARIES=%s' % libiberty_lib]
+
+        if spec.version == Version('parallel'):
+            tbb = spec['intel-tbb'].prefix
+            args.extend(['-DTBB_ROOT_DIR=%s' % tbb,
+                         '-DTBB_INCLUDE_DIR=%s' % tbb.include,
+                         '-DTBB_LIBRARY=%s' % tbb.lib])
 
         cmake(*args)
 

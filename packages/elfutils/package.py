@@ -57,3 +57,9 @@ class Elfutils(AutotoolsPackage):
     # disable maintainer mode, so we don't need flex or bison
     def configure_args(self):
         return [ '--disable-maintainer-mode' ]
+
+    # install elf.h to include directory
+    @run_after('install')
+    def install_elf_h(self):
+        install(join_path(self.stage.source_path, 'libelf', 'elf.h'),
+                self.prefix.include)

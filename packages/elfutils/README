@@ -28,16 +28,16 @@ we don't need flex or bison.
 
 2. Elfutils requires zlib as a prerequisite, but does not use
 --with-zlib as the path to zlib install.  Instead, specify zlib
-directories with CPPFLAGS and LDFLAGS.
+directories with CPPFLAGS and LDFLAGS.  Same for bzip2 and xz (lzma).
 
 Now with spack, the -I and -L paths are automagically added to the
 compiler wrapper for dependencies, so these are not needed for
 CPPFLAGS and LDFLAGS.
 
-3. May want to rethink the gettext prereq, and may want to add zlib,
-bzip and xz (lzma) as explicit prereqs.
+3. Copy elf.h to the include directory.  Elfutils uses its own version
+over /usr/include/elf.h, so we want packages built with elfutils to
+see a consistent view of the world.
 
-4. May want to add elf.h to the install directory.
-
-5. May want to uninstall or hide files in the bin install directory.
+4. May want to uninstall or hide files in the bin install directory.
+(Some reports of elfutils ld breaking /usr/bin/ld.)
 

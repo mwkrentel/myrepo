@@ -1,26 +1,29 @@
-=====================
+---------------------
 Binutils Build Notes
-=====================
+---------------------
 
 Home: https://www.gnu.org/software/binutils/
 
-Download: <GNU mirror>/gnu/gnu/binutils/binutils-2.27.tar.bz2
+Download: <GNU mirror>/gnu/gnu/binutils/binutils-2.28.1.tar.bz2
 
 License: GPL and LGPL
 
 Uses Autoconf and Autogen Makefile template.
 
-for selected subdirs
-  configure ...
-  make
-  make install
+for subdir in . intl libiberty zlib bfd opcodes
+   configure ...
+   make
+   make install
 
-Note: we selectively configure and build just what we use, some of the
-other subpackages cause problems.
+Notes
+1. Version 2.29 restructured some header files (print_insn_i386 in
+dis-asm.h).  So, we're stuck on rev 2.28 until toolkit adjusts to the
+change.
 
-Note: the binutils-lite tar file is the original tar file minus
-several large directories that we don't use.  This is strictly for
-space in the git repo.  The full tar file would work just as well.
+2. We could build just a subset of the directories, in the interest of
+build speed (. intl libiberty zlib bfd opcodes).  If so, then run
+configure in '.' plus the subdirs, but only build in the subdirs.
 
-Now using native (unpatched) binutils.
+3. Annoyingly, binutils installs libbfd to lib, but libiberty to
+lib64.
 

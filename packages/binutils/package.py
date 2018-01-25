@@ -22,61 +22,61 @@
 # License along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 ##############################################################################
-from spack import *
 
+# Modified for Rice HPCToolkit.
+#
+# Version 2.29 restructured some header files (print_insn_i386 in
+# dis-asm.h).  So, we're stuck on rev 2.28 until toolkit adjusts to
+# the change.
+
+from spack import *
+import os.path
+import shutil
 
 class Binutils(AutotoolsPackage):
-    """GNU binutils, which contain the linker, assembler, objdump and others"""
+    """GNU binutils built for Rice HPCToolkit."""
 
-    homepage = "http://www.gnu.org/software/binutils/"
-    url      = "https://ftp.gnu.org/gnu/binutils/binutils-2.28.tar.bz2"
+    homepage = "https://www.gnu.org/software/binutils/"
+    url = "https://ftp.gnu.org/gnu/binutils/binutils-2.28.1.tar.bz2"
 
-    version('2.29.1', '9af59a2ca3488823e453bb356fe0f113')
-    version('2.28', '9e8340c96626b469a603c15c9d843727')
-    version('2.27', '2869c9bf3e60ee97c74ac2a6bf4e9d68')
-    version('2.26', '64146a0faa3b411ba774f47d41de239f')
-    version('2.25', 'd9f3303f802a5b6b0bb73a335ab89d66')
-    version('2.24', 'e0f71a7b2ddab0f8612336ac81d9636b')
-    version('2.23.2', '4f8fa651e35ef262edc01d60fb45702e')
-    version('2.20.1', '2b9dc8f2b7dbd5ec5992c6e29de0b764')
+    version('2.28.1', '569a85c66421b16cfaa43b5f986db3bb')
 
-    variant('plugins', default=False,
-            description="enable plugins, needed for gold linker")
-    variant('gold', default=True, description="build the gold linker")
-    variant('libiberty', default=False, description='Also install libiberty.')
+    depends_on('zlib', type='run')
 
-    # patch('cr16.patch')
-    # patch('update_symbol-2.26.patch', when='@2.26')
+    patch('basename.patch')
+    patch('config.patch')
 
-    depends_on('zlib')
+    default_cflags = ['-g', '-O2']
 
-    depends_on('m4', type='build')
-    depends_on('flex', type='build')
-    depends_on('bison', type='build')
-    depends_on('gettext')
+    # set default cflags and move to configure command line
+    def flag_handler(self, name, flags):
+        if name != 'cflags': return (flags, None, None)
+
+        if flags == []: flags = self.default_cflags
+        return (None, None, flags)
 
     def configure_args(self):
-        spec = self.spec
+        args = ['--enable-targets=all',
+                '--enable-install-libiberty',
+                '--disable-werror']
+        return args
 
-        configure_args = [
-            '--with-system-zlib',
-            '--disable-dependency-tracking',
-            '--disable-werror',
-            '--enable-interwork',
-            '--enable-multilib',
-            '--enable-shared',
-            '--enable-64-bit-bfd',
-            '--enable-targets=all',
-            '--with-sysroot=/',
-        ]
+    # this is temporary, to make the spack install look more like
+    # externals's install, until we rework toolkit configure
+    @run_after('install')
+    def copy_libiberty_zlib(self):
+        prefix = self.prefix
+        zlib = self.spec['zlib'].prefix
 
-        if '+gold' in spec:
-            configure_args.append('--enable-gold')
+        print '==> manually copy libiberty and zlib to: ', prefix
+        if not os.path.isfile(join_path(prefix.include, 'libiberty.h')):
+            shutil.copy(join_path(prefix.include, 'libiberty', 'demangle.h'),
+                        prefix.include)
+            shutil.copy(join_path(prefix.include, 'libiberty', 'libiberty.h'),
+                        prefix.include)
 
-        if '+plugins' in spec:
-            configure_args.append('--enable-plugins')
+        if not os.path.isfile(join_path(prefix.lib, 'libiberty.a')):
+            shutil.copy(join_path(prefix.lib64, 'libiberty.a'), prefix.lib)
 
-        if '+libiberty' in spec:
-            configure_args.append('--enable-install-libiberty')
-
-        return configure_args
+        if not os.path.isfile(join_path(prefix.lib, 'libz.a')):
+            shutil.copy(join_path(zlib.lib, 'libz.a'), prefix.lib)

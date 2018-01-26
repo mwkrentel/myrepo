@@ -1,0 +1,27 @@
+-----------------------
+Libmonitor Build Notes
+-----------------------
+
+Home: http://hpctoolkit.org
+
+Git: https://github.com/hpctoolkit/libmonitor
+
+git clone https://github.com/hpctoolkit/libmonitor
+
+License: BSD
+
+Uses Autoconf and Automake, supports vpath and parallel make.
+
+./configure  \
+    CC=compiler  \
+    CFLAGS=flags  \
+    --prefix=PATH  \
+    --enable-client-signals='...'
+make -j 4
+make install
+
+A Rice HPCToolkit project, one of ours.
+
+Notes
+1. On Blue Gene/Q backend, need to use powerpc64-bgq-linux-gcc.
+

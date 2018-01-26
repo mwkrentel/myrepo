@@ -43,6 +43,8 @@ class Libiberty(AutotoolsPackage):
 
     version('2.28.1', '569a85c66421b16cfaa43b5f986db3bb')
 
+    patch('basename.patch')
+
     default_cflags = ['-g', '-O']
 
     # configure and build just libiberty subdir

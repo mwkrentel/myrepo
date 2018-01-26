@@ -31,17 +31,17 @@
 ##############################################################################
 
 from spack import *
-import os
+import os.path
 import shutil
 
 class Libiberty(AutotoolsPackage):
     """The libiberty.a library from GNU binutils built static with
-    -fPIC as a prereq for Dyninst for HPCToolkit."""
+    -fPIC as a prerequisite for Dyninst for HPCToolkit."""
 
     homepage = "https://www.gnu.org/software/binutils/"
-    url      = "https://ftp.gnu.org/gnu/binutils/binutils-2.29.1.tar.bz2"
+    url = "https://ftp.gnu.org/gnu/binutils/binutils-2.28.1.tar.bz2"
 
-    version('2.29.1', '9af59a2ca3488823e453bb356fe0f113')
+    version('2.28.1', '569a85c66421b16cfaa43b5f986db3bb')
 
     default_cflags = ['-g', '-O']
 

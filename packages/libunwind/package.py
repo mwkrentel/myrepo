@@ -22,13 +22,49 @@
 # License along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 ##############################################################################
-from spack import *
 
+# Modified for Rice HPCToolkit.
+
+from spack import *
+import os.path
 
 class Libunwind(AutotoolsPackage):
-    """A portable and efficient C programming interface (API) to determine
-       the call-chain of a program."""
-    homepage = "http://www.nongnu.org/libunwind/"
-    url      = "http://download.savannah.gnu.org/releases/libunwind/libunwind-1.1.tar.gz"
+    """A library for unwinding the call stack of a running program,
+    built for Rice HPCToolkit."""
 
-    version('1.1', 'fb4ea2f6fbbe45bf032cd36e586883ce')
+    homepage = "http://www.nongnu.org/libunwind/"
+    url = "https://github.com/libunwind/libunwind"
+
+    version('2018.01.17', commit = '7d6cc6696ab8a808da3d',
+            git = 'https://github.com/libunwind/libunwind')
+
+    depends_on('xz', type='link')
+
+    default_cflags = ['-g', '-O2']
+
+    # run autoreconf ourself, so we don't have to rebuild all its
+    # prereqs (perl).
+    def autoreconf(self, spec, prefix):
+        reconf = Executable('autoreconf')
+        reconf('-f', '-i')
+
+        if not os.path.exists(self.configure_abs_path):
+            msg = 'configure script not found in {0}'
+            raise RuntimeError(msg.format(self.configure_directory))
+
+    # set default cflags and move to configure command line
+    def flag_handler(self, name, flags):
+        if name != 'cflags': return (flags, None, None)
+
+        if flags == []: flags = self.default_cflags
+        return (None, None, flags)
+
+    def configure_args(self):
+        args = ['--enable-shared',
+                '--enable-static',
+                '--enable-minidebuginfo',
+                '--disable-coredump',
+                '--disable-ptrace',
+                '--disable-setjmp',
+                '--disable-tests']
+        return args

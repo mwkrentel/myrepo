@@ -7,17 +7,13 @@ Home: http://www.nongnu.org/libunwind/
 
 Download: http://www.nongnu.org/libunwind/download.html
 
-Git Home:
+Git: http://git.savannah.gnu.org/gitweb/?p=libunwind.git;a=summary
 
-http://git.savannah.gnu.org/gitweb/?p=libunwind.git;a=summary
-git clone git://git.sv.gnu.org/libunwind.git
+GitHub: https://github.com/libunwind
 
-GitHub Mirror:
-
-https://github.com/libunwind/
 git clone https://github.com/libunwind/libunwind
 
-License: MIT
+License: X11
 
 Uses Autoconf and Automake, but git repo does not include
 auto-generated files (no autoreconf).  Supports vpath and parallel
@@ -25,10 +21,10 @@ make.
 
 ./configure  \
     --prefix=PATH  \
-    --enable-option ...  \
     CPPFLAGS='-I/path/to/lzma/include'  \
     LDFLAGS='-L/path/to/lzma/lib'  \
-    LIBS='-llzma'
+    LIBS='-llzma'  \
+    --enable-option ...
 
 make -j 4
 make install
@@ -47,16 +43,6 @@ As a side effect of LDFLAGS and LIBS, also need to set LD_LIBRARY_PATH
 because autoconf tries to run a compiled file as a test of the C
 compiler (unless cross-compiling).
 
-3. Git repo does not include generated files, so when making a tar
-file for distfiles, first run autoreconf with the current version of
-autotools from hpctoolkit-devtools.  Remove autom4te.cache and be sure
-to exclude .git.
-
-autoreconf -f -i
-rm -rf autom4te.cache
-tar cf libunwind-date.tar --exclude .git libunwind
-bzip2 libunwind-date.tar
-
-The libunwind-2017-10-02 tar file is from commit 60ddc67196ea.
-The libunwind-2017-07-19 tar file is from commit 93f319466f3d.
+With spack, -I and -L are handled in the wrapper, and LD_LIBRARY_PATH
+is not necessary due to rpath.
 

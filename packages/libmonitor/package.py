@@ -38,7 +38,7 @@ class Libmonitor(AutotoolsPackage):
     homepage = "https://github.com/hpctoolkit/libmonitor"
     url = "https://github.com/hpctoolkit/libmonitor"
 
-    version('2017.12.06', commit = '6be9bc85ff756198b9c7',
+    version('2018.02.01', commit = '7fcc9cb464f638b5ffcd',
             git = 'https://github.com/hpctoolkit/libmonitor')
 
     default_cflags = ['-g', '-O2']

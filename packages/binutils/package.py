@@ -68,7 +68,6 @@ class Binutils(AutotoolsPackage):
         prefix = self.prefix
         zlib = self.spec['zlib'].prefix
 
-        print '==> manually copy libiberty and zlib to: ', prefix
         if not os.path.isfile(join_path(prefix.include, 'libiberty.h')):
             shutil.copy(join_path(prefix.include, 'libiberty', 'demangle.h'),
                         prefix.include)

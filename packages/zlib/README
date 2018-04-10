@@ -2,7 +2,7 @@
 Zlib Build Notes
 -----------------
 
-Home: http://www.zlib.net/
+Home: http://zlib.net/
 
 Download: http://zlib.net/zlib-1.2.8.tar.gz
 
@@ -11,7 +11,7 @@ License: Custom, but similar to BSD.
 Uses own configure and Makefile, no autotools.
 
 export CC=gcc CFLAGS='...'
-./configure --prefix=PATH --static
+./configure --prefix=PATH
 make
 make install
 

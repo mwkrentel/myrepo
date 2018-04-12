@@ -41,20 +41,26 @@ class Libmonitor(AutotoolsPackage):
     version('2018.02.01', commit = '7fcc9cb464f638b5ffcd',
             git = 'https://github.com/hpctoolkit/libmonitor')
 
-    default_cflags = ['-g', '-O2']
+    variant('bgq', default=False, description='compile for blue gene/q back end')
 
     signals = 'SIGBUS, SIGSEGV, SIGPROF, 36, 37, 38'
 
-    # fixme: need to use CC = powerpc64-bgq-linux-gcc for blue gene/q
-    # back end.
-
-    # set default cflags and move to configure command line
+    # set default cflags (-g -O2) and move to configure line
     def flag_handler(self, name, flags):
         if name != 'cflags': return (flags, None, None)
 
-        if flags == []: flags = self.default_cflags
+        if '-g' not in flags: flags.append('-g')
+        for flag in flags:
+            if flag[0:2] == '-O': break
+        else:
+            flags.append('-O2')
+
         return (None, None, flags)
 
     def configure_args(self):
-        args = [ '--enable-client-signals=%s' % self.signals ]
+        args = ['--enable-client-signals=%s' % self.signals]
+
+        if '+bgq' in self.spec:
+            args.append('CC=powerpc64-bgq-linux-gcc')
+
         return args

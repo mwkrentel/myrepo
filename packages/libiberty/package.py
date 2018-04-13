@@ -1,5 +1,5 @@
 ##############################################################################
-#  Copyright (c) 2017, Rice University.
+#  Copyright (c) 2017-2018, Rice University.
 #  All rights reserved.
 #
 #  Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,7 @@ import shutil
 
 class Libiberty(AutotoolsPackage):
     """The libiberty.a library from GNU binutils built static with
-    -fPIC as a prerequisite for Dyninst for HPCToolkit."""
+    -fPIC as a prerequisite for Dyninst for Rice HPCToolkit."""
 
     homepage = "https://www.gnu.org/software/binutils/"
     url = "https://ftp.gnu.org/gnu/binutils/binutils-2.28.1.tar.bz2"
@@ -45,20 +45,22 @@ class Libiberty(AutotoolsPackage):
 
     patch('basename.patch')
 
-    default_cflags = ['-g', '-O']
-
     # configure and build just libiberty subdir
     @property
     def configure_directory(self):
         return join_path(self.stage.source_path, 'libiberty')
 
-    # add -fPIC to CFLAGS and move to the configure command line.
-    # if original cflags is empty, then we must set the default or
-    # else fpic is the only flag.
+    # set default cflags (-g -O2), add -fPIC, and move to the
+    # configure line
     def flag_handler(self, name, flags):
         if name != 'cflags': return (flags, None, None)
 
-        if flags == []: flags = self.default_cflags
+        if '-g' not in flags: flags.append('-g')
+        for flag in flags:
+            if flag[0:2] == '-O': break
+        else:
+            flags.append('-O2')
+
         flags.append(self.compiler.pic_flag)
         return (None, None, flags)
 

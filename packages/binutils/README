@@ -27,3 +27,6 @@ configure in '.' plus the subdirs, but only build in the subdirs.
 3. Annoyingly, binutils installs libbfd to lib, but libiberty to
 lib64.
 
+4. Binutils configure now tests for makeinfo, so we don't need the
+MAKEINFO=echo workaround anymore.
+

@@ -1,5 +1,5 @@
 ##############################################################################
-# Copyright (c) 2013-2017, Lawrence Livermore National Security, LLC.
+# Copyright (c) 2013-2018, Lawrence Livermore National Security, LLC.
 # Produced at the Lawrence Livermore National Laboratory.
 #
 # This file is part of Spack.
@@ -46,13 +46,16 @@ class Binutils(AutotoolsPackage):
     patch('basename.patch')
     patch('config.patch')
 
-    default_cflags = ['-g', '-O2']
-
-    # set default cflags and move to configure command line
+    # set default cflags (-g -O2) and move to configure line
     def flag_handler(self, name, flags):
         if name != 'cflags': return (flags, None, None)
 
-        if flags == []: flags = self.default_cflags
+        if '-g' not in flags: flags.append('-g')
+        for flag in flags:
+            if flag[0:2] == '-O': break
+        else:
+            flags.append('-O2')
+
         return (None, None, flags)
 
     def configure_args(self):

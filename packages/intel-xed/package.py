@@ -1,68 +1,86 @@
 ##############################################################################
-#  Copyright (c) 2017, Rice University.
-#  All rights reserved.
+# Copyright (c) 2013-2018, Lawrence Livermore National Security, LLC.
+# Produced at the Lawrence Livermore National Laboratory.
 #
-#  Redistribution and use in source and binary forms, with or without
-#  modification, are permitted provided that the following conditions are
-#  met:
+# This file is part of Spack.
+# Created by Todd Gamblin, tgamblin@llnl.gov, All rights reserved.
+# LLNL-CODE-647188
 #
-#  * Redistributions of source code must retain the above copyright
-#    notice, this list of conditions and the following disclaimer.
+# For details, see https://github.com/spack/spack
+# Please also see the NOTICE and LICENSE files for our notice and the LGPL.
 #
-#  * Redistributions in binary form must reproduce the above copyright
-#    notice, this list of conditions and the following disclaimer in the
-#    documentation and/or other materials provided with the distribution.
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License (as
+# published by the Free Software Foundation) version 2.1, February 1999.
 #
-#  * Neither the name of Rice University (RICE) nor the names of its
-#    contributors may be used to endorse or promote products derived from
-#    this software without specific prior written permission.
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the IMPLIED WARRANTY OF
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the terms and
+# conditions of the GNU Lesser General Public License for more details.
 #
-#  This software is provided by RICE and contributors "as is" and any
-#  express or implied warranties, including, but not limited to, the
-#  implied warranties of merchantability and fitness for a particular
-#  purpose are disclaimed. In no event shall RICE or contributors be
-#  liable for any direct, indirect, incidental, special, exemplary, or
-#  consequential damages (including, but not limited to, procurement of
-#  substitute goods or services; loss of use, data, or profits; or
-#  business interruption) however caused and on any theory of liability,
-#  whether in contract, strict liability, or tort (including negligence
-#  or otherwise) arising in any way out of the use of this software, even
-#  if advised of the possibility of such damage.
+# You should have received a copy of the GNU Lesser General Public
+# License along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 ##############################################################################
-
 from spack import *
 import glob
+import os
+
 
 class IntelXed(Package):
-    """The Intel X86 Instruction Encoder Decoder library built for Rice
-    HPCToolkit.  This version only builds the decoder library."""
+    """The Intel X86 Encoder Decoder library for encoding and decoding x86
+    machine instructions (64- and 32-bit).  Also includes libxed-ild,
+    a lightweight library for decoding the length of an instruction.
+    This version built for Rice HPCToolkit."""
 
     homepage = "https://intelxed.github.io/"
     url = "https://github.com/intelxed/xed"
 
-    version('2017.11.07',
-            git = 'https://github.com/intelxed/xed',
-            commit = '0f857b386f1885c4')
+    version('2018.02.14',
+            git='https://github.com/intelxed/xed',
+            commit='44d06033b69aef2c20ab01bfb518c52cd71bb537')
 
-    resource(name = 'mbuild',
-             git = 'https://github.com/intelxed/mbuild',
-             commit = '9eefb36a01167e56',
-             destination = '')
+    resource(name='mbuild',
+             git='https://github.com/intelxed/mbuild',
+             commit='bb9123152a330c7fa1ff1a502950dc199c83e177',
+             destination='')
 
-    # fixme: read cflags from spec and translate to mfile syntax.
-    # this version always uses: -g -O2
+    variant('debug', default=True, description='enable debug symbols')
+
+    mycflags = []
+
+    # Save CFLAGS for use in install.
+    def flag_handler(self, name, flags):
+        if name == 'cflags':
+            self.mycflags = flags
+        return (flags, None, None)
+
     def install(self, spec, prefix):
+        # XED needs PYTHONPATH to find the mbuild directory.
+        mbuild_dir = join_path(self.stage.source_path, 'mbuild')
+        python_path = os.getenv('PYTHONPATH', '')
+        os.environ['PYTHONPATH'] = mbuild_dir + ':' + python_path
+
         mfile = Executable('./mfile.py')
 
-        opts = ['-j', str(make_jobs),
-                '--debug',
-                '--opt=2',
-                '--no-encoder',
+        args = ['-j', str(make_jobs),
+                '--cc=%s' % spack_cc,
                 '--no-werror']
 
-        # build and install static libxed.a
+        if '+debug' in spec:
+            args.append('--debug')
+
+        # If an optimization flag (-O...) is specified in CFLAGS, use
+        # that, else set default opt level.
+        for flag in self.mycflags:
+            if len(flag) >= 2 and flag[0:2] == '-O':
+                break
+        else:
+            args.append('--opt=2')
+
+        # Build and install static libxed.a.
         mfile('--clean')
-        mfile(*opts)
+        mfile(*args)
 
         mkdirp(prefix.include)
         mkdirp(prefix.lib)
@@ -71,16 +89,16 @@ class IntelXed(Package):
         for lib in libs:
             install(lib, prefix.lib)
 
-        # build and install shared libxed.so
+        # Build and install shared libxed.so.
         mfile('--clean')
-        mfile('--shared', *opts)
+        mfile('--shared', *args)
 
         libs = glob.glob(join_path('obj', 'lib*.so'))
         for lib in libs:
             install(lib, prefix.lib)
 
-        # install header files
+        # Install header files.
         hdrs = glob.glob(join_path('include', 'public', 'xed', '*.h'))  \
-             + glob.glob(join_path('obj', '*.h'))
+            + glob.glob(join_path('obj', '*.h'))
         for hdr in hdrs:
             install(hdr, prefix.include)

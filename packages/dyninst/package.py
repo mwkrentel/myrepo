@@ -45,7 +45,7 @@ class Dyninst(Package):
             branch='master', preferred=True)
 
     version('johnmc', git='https://github.com/jmellorcrummey/dyninst',
-            branch='cumulative-patches')
+            branch='new-parallel-parsing')
 
     version('parallel', git='https://github.com/dyninst/dyninst.git',
             branch='new-parallel-parsing')

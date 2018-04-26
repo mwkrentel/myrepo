@@ -50,10 +50,27 @@ class Dyninst(Package):
     version('parallel', git='https://github.com/dyninst/dyninst.git',
             branch='new-parallel-parsing')
 
+    variant('debug', default=False, description='Use Cmake build type Debug')
+    variant('openmp', default=False, description='Enable OpenMP support')
+
     depends_on('boost', type='link')
     depends_on('elfutils', type='link')
     depends_on('libiberty', type='link')
+    depends_on('intel-tbb', type='link', when='@johnmc')
     depends_on('intel-tbb', type='link', when='@parallel')
+
+    def patch(self):
+        # Disable cotire, it breaks parallel builds when building both
+        # shared and static libraries.
+        filter_file(r'^(.*)[sS][eE][tT].*USE_COTIRE.*', r'\1set(USE_COTIRE false)',
+                    join_path('cmake', 'shared.cmake'))
+
+        # Disable testsuite, or else we have to fetch a git submodule.
+        filter_file(r'^.*add_subdirectory.*testsuite.*', '# disable testsuite',
+                    'CMakeLists.txt')
+
+    # Move cxxflags to compiler wrapper (default).
+    flag_handler = Package.inject_flags
 
     def install(self, spec, prefix):
         boost_root = spec['boost'].prefix
@@ -65,11 +82,15 @@ class Dyninst(Package):
         build_subdirs = ['common', 'elf', 'dwarf', 'symtabAPI',
                          'instructionAPI', 'parseAPI']
 
+        build_type = 'RelWithDebInfo'
+        if '+debug' in spec:
+            build_type = 'Debug'
+
         args = ['.',
                 '-DCMAKE_INSTALL_PREFIX=%s' % prefix,
-                '-DCMAKE_BUILD_TYPE=RelWithDebInfo',
-                '-DCMAKE_C_COMPILER=%s' % self.compiler.cc,
-                '-DCMAKE_CXX_COMPILER=%s' % self.compiler.cxx,
+                '-DCMAKE_BUILD_TYPE=%s' % build_type,
+                '-DCMAKE_C_COMPILER=%s' % spack_cc,
+                '-DCMAKE_CXX_COMPILER=%s' % spack_cxx,
                 '-DUSE_COTIRE=False',
                 '-DBUILD_DOCS=Off',
                 '-DBUILD_RTLIB=Off',
@@ -81,11 +102,15 @@ class Dyninst(Package):
                 '-DLIBDWARF_LIBRARIES=%s' % dwarf_lib,
                 '-DIBERTY_LIBRARIES=%s' % libiberty_lib]
 
-        if spec.version == Version('parallel'):
+        if spec.version == Version('johnmc') or spec.version == Version('parallel'):
             tbb = spec['intel-tbb'].prefix
             args.extend(['-DTBB_ROOT_DIR=%s' % tbb,
                          '-DTBB_INCLUDE_DIR=%s' % tbb.include,
                          '-DTBB_LIBRARY=%s' % tbb.lib])
+
+        if '+openmp' in spec:
+            args.extend(['-DCMAKE_C_FLAGS=%s' % self.compiler.openmp_flag,
+                         '-DCMAKE_CXX_FLAGS=%s' % self.compiler.openmp_flag])
 
         cmake(*args)
 

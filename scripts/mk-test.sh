@@ -1,16 +1,16 @@
 #!/bin/sh
 #
-#  Copyright (c) 2017, Rice University.
+#  Copyright (c) 2017-2018, Rice University.
 #  See the file LICENSE for details.
 #
 #  Mark W. Krentel
 #  March 2017, revised October 2017
 #
 #  This script uses a spack install directory to build a Dyninst
-#  application, especially a cilk app for the new-parallel-parsing
-#  branch.  It adds the include and lib directories for dyninst and
-#  its prereqs (boost, elfutils, dwarf, tbb, etc) to the compile line.
-#  To build a Dyninst app:
+#  application, especially an app for the new-parallel-parsing branch.
+#  It adds the include and lib directories for dyninst and its prereqs
+#  (boost, elfutils, dwarf, tbb, etc) to the compile line.  To build a
+#  Dyninst app:
 #
 #   1. use the recipes in this repo to build dyninst's prereqs,
 #   2. use the mk-dyninst.sh script to build dyninst,
@@ -28,7 +28,7 @@ DYNINST_INSTALL=install-dyninst
 SPACK_INSTALL=path/to/spack/linux-redhat-x86/gcc-x.y.z
 
 CXX=g++
-CXXFLAGS='-g -O -std=c++11 -fcilkplus'
+CXXFLAGS='-g -O -std=c++11 -fopenmp'
 
 environ=env.sh
 

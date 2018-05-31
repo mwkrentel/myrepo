@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-#  Copyright (c) 2017, Rice University.
+#  Copyright (c) 2017-2018, Rice University.
 #  See the file LICENSE for details.
 #
 #  Mark W. Krentel
@@ -28,15 +28,16 @@
 DYNINST_ROOT=dyninst
 SPACK_INSTALL=path/to/spack/linux-redhat-x86/gcc-x.y.z
 
-BUILD_TYPE=RelWithDebInfo
+BUILD=build-dyninst
+INSTALL=install-dyninst
 
 CC=gcc
 CXX=g++
 
-BUILD=build-dyninst
-INSTALL=install-dyninst
+BUILD_TYPE=RelWithDebInfo
+# CXXFLAGS='-fopenmp'
 
-jobs='-j 4'
+jobs='-j 8'
 
 build_subdirs='common elf dwarf symtabAPI instructionAPI parseAPI'
 
@@ -159,6 +160,10 @@ set --  \
     -DTBB_ROOT_DIR="$tbb_root"  \
     -DTBB_INCLUDE_DIR="$tbb_inc"  \
     -DTBB_LIBRARY="$tbb_lib_dir"
+
+if test "x$CXXFLAGS" != x ; then
+    set -- "$@" -DCMAKE_CXX_FLAGS="$CXXFLAGS"
+fi
 
 #------------------------------------------------------------
 

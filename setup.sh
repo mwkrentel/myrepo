@@ -32,6 +32,8 @@ prefix="$2"
 prog_name=setup.sh
 this_dir=`/bin/pwd`
 
+env=env.sh
+
 die() {
     cat <<EOF
 error: $@
@@ -109,7 +111,7 @@ cat <<EOF >>"$config"
   build_stage:
     - \$spack/var/spack/stage
 
-  build_jobs: 4
+  # build_jobs: 8
 
 EOF
 
@@ -139,8 +141,6 @@ EOF
 
 cd "$this_dir" || die "unable to cd: $this_dir"
 
-env=env.sh
-
 rm -f "$env"
 
 cat <<EOF >"$env"
@@ -152,10 +152,10 @@ PATH="${spack_root}/bin/:\$PATH"
 
 EOF
 
-#
-# Finally, print the list of known repositories and install prefix to
-# see if everything worked.
-#
+#------------------------------------------------------------
+# Step 3 -- print the list of known repositories and install prefix
+# to see if everything worked.
+#------------------------------------------------------------
 
 echo
 

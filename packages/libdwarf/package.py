@@ -55,24 +55,23 @@ class Libdwarf(Package):
                                         spec['zlib'].prefix.lib)]
         soname = 'libdwarf.so.1'
 
-        # the spack wrappers put the elf include dir ahead of our
-        # patched makefile, so we have to hide elf's dwarf.h.
-        dwarf_h = join_path(spec['elfutils'].prefix, 'include/dwarf.h')
+        # spack has reworked the order of the include dirs in the
+        # wrappers, so we don't use hide_files anymore (which no
+        # longer exists).
 
-        with hide_files(dwarf_h):
-            with working_dir('libdwarf'):
-                #
-                # this version builds both a shared library and a
-                # static library with -fPIC.  the --disable-fpic
-                # option is broken, so a static library without -fPIC
-                # requires hacking the configure script.
-                #
-                configure('--enable-shared', *opts)
-                make()
+        with working_dir('libdwarf'):
+            #
+            # this version builds both a shared library and a static
+            # library with -fPIC.  the --disable-fpic option is
+            # broken, so a static library without -fPIC requires
+            # hacking the configure script.
+            #
+            configure('--enable-shared', *opts)
+            make()
 
-                install('dwarf.h', prefix.include)
-                install('libdwarf.h', prefix.include)
-                install('libdwarf.a', prefix.lib)
-                install('libdwarf.so', join_path(prefix.lib, soname))
-                with working_dir(prefix.lib):
-                    os.symlink(soname, 'libdwarf.so')
+            install('dwarf.h', prefix.include)
+            install('libdwarf.h', prefix.include)
+            install('libdwarf.a', prefix.lib)
+            install('libdwarf.so', join_path(prefix.lib, soname))
+            with working_dir(prefix.lib):
+                os.symlink(soname, 'libdwarf.so')

@@ -26,12 +26,10 @@
 # Todo:
 #
 #  1. add papi
-#
 #  2. add mpi
-#
 #  3. check for and set compiler rev
-#
-#  4. intel-xed only on x86
+#  5. static binaries
+#  6. anything special for blue gene or cray
 #
 
 from spack import *
@@ -50,32 +48,32 @@ class Hpctoolkit(AutotoolsPackage):
 
     version('config', branch='config')
 
-    depends_on('binutils+libiberty')
+    depends_on('binutils@2.28+libiberty~nls')
     depends_on('boost')
     depends_on('bzip2')
     depends_on('dyninst')
-    depends_on('elfutils')
+    depends_on('elfutils~nls')
     depends_on('intel-tbb')
-    depends_on('intel-xed')
+    depends_on('intel-xed', when='target=x86_64')
     depends_on('libdwarf')
     depends_on('libmonitor+hpctoolkit')
     depends_on('libpfm4')
-    depends_on('libunwind')
+    depends_on('libunwind@1.3-rc1')
     depends_on('xerces-c')
     depends_on('xz')
     depends_on('zlib')
 
     def configure_args(self):
         spec = self.spec
+        target = spec.architecture.target
 
         args = [
             '--with-binutils=%s'     % spec['binutils'].prefix,
             '--with-boost=%s'        % spec['boost'].prefix,
             '--with-bzip=%s'         % spec['bzip2'].prefix,
-            '--with-symtabAPI=%s'    % spec['dyninst'].prefix,
-            '--with-libelf=%s'       % spec['elfutils'].prefix,
+            '--with-dyninst=%s'      % spec['dyninst'].prefix,
+            '--with-elfutils=%s'     % spec['elfutils'].prefix,
             '--with-tbb=%s'          % spec['intel-tbb'].prefix,
-            '--with-xed2=%s'         % spec['intel-xed'].prefix,
             '--with-libdwarf=%s'     % spec['libdwarf'].prefix,
             '--with-libmonitor=%s'   % spec['libmonitor'].prefix,
             '--with-perfmon=%s'      % spec['libpfm4'].prefix,
@@ -84,5 +82,8 @@ class Hpctoolkit(AutotoolsPackage):
             '--with-lzma=%s'         % spec['xz'].prefix,
             '--with-zlib=%s'         % spec['zlib'].prefix,
             ]
+
+        if target == 'x86_64':
+            args.append('--with-xed=%s' % spec['intel-xed'].prefix)
 
         return args

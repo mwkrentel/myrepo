@@ -25,10 +25,7 @@
 
 # Todo:
 #
-#  1. add papi
-#  2. add mpi
 #  3. check for and set compiler rev
-#  5. static binaries
 #  6. anything special for blue gene or cray
 #
 
@@ -48,20 +45,41 @@ class Hpctoolkit(AutotoolsPackage):
 
     version('config', branch='config')
 
-    depends_on('binutils@2.28+libiberty~nls')
+    # We can't build with both PAPI and perfmon for risk of segfault
+    # from mismatched header files (unless PAPI installs the perfmon
+    # headers).
+    variant('papi', default=False,
+            description='Use PAPI instead of perfmon for access to '
+            'the hardware performance counters.')
+
+    # We always support profiling MPI applications.  +mpi builds
+    # hpcprof-mpi, the MPI version of hpcprof.
+    variant('mpi', default=False,
+            description='Build hpcprof-mpi, the MPI version of hpcprof.')
+
+    variant('all-static', default=False,
+            description='Needed when MPICXX builds static binaries '
+            'for the compute nodes.')
+
+    depends_on('binutils+libiberty~nls')
     depends_on('boost')
     depends_on('bzip2')
     depends_on('dyninst')
     depends_on('elfutils~nls')
     depends_on('intel-tbb')
-    depends_on('intel-xed', when='target=x86_64')
     depends_on('libdwarf')
     depends_on('libmonitor+hpctoolkit')
-    depends_on('libpfm4')
     depends_on('libunwind@1.3-rc1')
-    depends_on('xerces-c')
+    depends_on('xerces-c transcoder=iconv')
     depends_on('xz')
     depends_on('zlib')
+
+    depends_on('intel-xed', when='target=x86_64')
+    depends_on('papi', when='+papi')
+    depends_on('libpfm4', when='~papi')
+    depends_on('mpi', when='+mpi')
+
+    flag_handler = AutotoolsPackage.build_system_flags
 
     def configure_args(self):
         spec = self.spec
@@ -76,7 +94,6 @@ class Hpctoolkit(AutotoolsPackage):
             '--with-tbb=%s'          % spec['intel-tbb'].prefix,
             '--with-libdwarf=%s'     % spec['libdwarf'].prefix,
             '--with-libmonitor=%s'   % spec['libmonitor'].prefix,
-            '--with-perfmon=%s'      % spec['libpfm4'].prefix,
             '--with-libunwind=%s'    % spec['libunwind'].prefix,
             '--with-xerces=%s'       % spec['xerces-c'].prefix,
             '--with-lzma=%s'         % spec['xz'].prefix,
@@ -85,5 +102,16 @@ class Hpctoolkit(AutotoolsPackage):
 
         if target == 'x86_64':
             args.append('--with-xed=%s' % spec['intel-xed'].prefix)
+
+        if '+papi' in spec:
+            args.append('--with-papi=%s' % spec['papi'].prefix)
+        else:
+            args.append('--with-perfmon=%s' % spec['libpfm4'].prefix)
+
+        if '+mpi' in spec:
+            args.append('MPICXX=%s' % spec['mpi'].mpicxx)
+
+        if '+all-static' in spec:
+            args.append('--enable-all-static')
 
         return args

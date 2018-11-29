@@ -1,33 +1,7 @@
-##############################################################################
-# Copyright (c) 2013-2018, Lawrence Livermore National Security, LLC.
-# Produced at the Lawrence Livermore National Laboratory.
+# Copyright 2013-2018 Lawrence Livermore National Security, LLC and other
+# Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
-# This file is part of Spack.
-# Created by Todd Gamblin, tgamblin@llnl.gov, All rights reserved.
-# LLNL-CODE-647188
-#
-# For details, see https://github.com/spack/spack
-# Please also see the NOTICE and LICENSE files for our notice and the LGPL.
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License (as
-# published by the Free Software Foundation) version 2.1, February 1999.
-#
-# This program is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY; without even the IMPLIED WARRANTY OF
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the terms and
-# conditions of the GNU Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public
-# License along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-##############################################################################
-
-# Todo:
-#
-#  3. check for and set compiler rev
-#  6. anything special for blue gene or cray
-#
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 from spack import *
 
@@ -41,9 +15,10 @@ class Hpctoolkit(AutotoolsPackage):
     and attributes them to the full calling context in which they occur."""
 
     homepage = "http://hpctoolkit.org"
-    git      = "https://github.com/mwkrentel/hpctoolkit.git"
+    git      = "https://github.com/HPCToolkit/hpctoolkit.git"
 
-    version('config', branch='config')
+    version('develop', branch='master')
+    version('2018.11.05', commit='d0c43e39020e67095b1f1d8bb89b75f22b12aee9')
 
     # We can't build with both PAPI and perfmon for risk of segfault
     # from mismatched header files (unless PAPI installs the perfmon
@@ -61,15 +36,18 @@ class Hpctoolkit(AutotoolsPackage):
             description='Needed when MPICXX builds static binaries '
             'for the compute nodes.')
 
+    boost_libs = '+atomic +graph +regex +serialization'  \
+        '+shared +multithreaded'
+
     depends_on('binutils+libiberty~nls')
-    depends_on('boost')
+    depends_on('boost' + boost_libs)
     depends_on('bzip2')
     depends_on('dyninst')
     depends_on('elfutils~nls')
     depends_on('intel-tbb')
     depends_on('libdwarf')
     depends_on('libmonitor+hpctoolkit')
-    depends_on('libunwind@1.3-rc1')
+    depends_on('libunwind@2018.10.0:')
     depends_on('xerces-c transcoder=iconv')
     depends_on('xz')
     depends_on('zlib')
@@ -98,7 +76,7 @@ class Hpctoolkit(AutotoolsPackage):
             '--with-xerces=%s'       % spec['xerces-c'].prefix,
             '--with-lzma=%s'         % spec['xz'].prefix,
             '--with-zlib=%s'         % spec['zlib'].prefix,
-            ]
+        ]
 
         if target == 'x86_64':
             args.append('--with-xed=%s' % spec['intel-xed'].prefix)

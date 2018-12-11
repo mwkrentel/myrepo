@@ -2,9 +2,7 @@
 #  config.yaml
 #
 #  This is the main spack config file for directory layout, top-level
-#  parameters, etc.  You can specify the root of the install
-#  directory, the build directory, cache for downloaded tar files,
-#  etc.
+#  parameters, etc.
 #
 #  Put this file in <spack-root>/etc/spack and edit for your system.
 #  You can use this (minimal) file or else copy the defaults file and
@@ -19,10 +17,10 @@
 #  outside of the spack repository and use '-C dir' on the spack
 #  command line.
 #
-#    spack -C config-dir install ...
+#    spack -C dir install ...
 #
-#  Note: if you put this file in a separate directory, then you need
-#  to use '-C dir' with every spack command or else you will get
+#  Note: if you put this file in a separate directory, then you must
+#  use '-C dir' with every spack command or else you will get
 #  inconsistent results.
 #
 #  Note: you do not need to specify every parameter in this file.
@@ -41,16 +39,18 @@ config:
   # install_tree:  /path/to/root/of/spack/install/tree
 
 
+  # Locations where different types of modules should be installed.
+  # module_roots:
+  #   tcl:    $spack/share/spack/modules
+  #   lmod:   $spack/share/spack/lmod
+  #   dotkit: $spack/share/spack/dotkit
+
+
   # By default, spack uses /tmp to unpack tar files and build
   # packages.  Use this to specify an alternate location.
   # build_stage:
   #   - $spack/var/spack/stage
   #   - $tempdir
-
-
-  # By default, spack uses spack/var/spack/cache to store downloaded
-  # tar files.  Use this to specify an alternate location.
-  # source_cache: $spack/var/spack/cache
 
 
   # By default, spack uses all available hardware threads for parallel

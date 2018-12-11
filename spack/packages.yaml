@@ -6,9 +6,9 @@
 #  to build them.  It also specifies the paths or modules for system
 #  build tools (cmake, python, etc) to avoid rebuilding them.
 #
-#  Put this file in the same directory as config.yaml, either
-#  <spack-root>/etc/spack, or else in its own directory and then use
-#  'spack -C dir'.
+#  Put this file in one of spack's configuration scope directories,
+#  normally either <spack-root>/etc/spack, or else in its own,
+#  separate directory (and then use 'spack -C dir').
 #
 #  There are two main sections: hpctoolkit dependency specs and system
 #  build tools: cmake, perl, python, MPI and GCC.
@@ -36,6 +36,20 @@ packages:
   #   2. libmonitor -- add '+bgq' on Blue Gene/Q.
   #
   #------------------------------------------------------------
+
+
+  # hpctoolkit -- these settings can be specified here or else on the
+  # spack install command line.
+  #
+  # Use version 'develop' for the latest snapshot from master.
+  #
+  # +mpi builds hpcprof-mpi (requires mpi).
+  # +papi uses papi instead of perfmon.
+  #
+  # hpctoolkit:
+  #   version:  [2018.11.05, develop]
+  #   variants: +mpi
+
 
   # binutils -- used by hpcprof and struct simple (for functions and
   # line map info) and for VMA types in various places.
@@ -258,13 +272,13 @@ packages:
   #
   #------------------------------------------------------------
 
+
   # cmake -- dyninst requires cmake >= 3.x.
 
   # Example for a system install.  This example says that cmake 3.11.0
   # is available at /usr/bin/cmake.  Note: the 'paths:' entry is the
   # parent directory of 'bin', not the bin directory itself (similar
   # to prefix).
-  #
   # cmake:
   #   paths:
   #     cmake@3.11.0:  /usr
@@ -299,8 +313,8 @@ packages:
 
   #------------------------------------------------------------
 
-  # python -- spack always requires python >= 2.6 to do anything.  On
-  # x86, intel-xed requires python 2.7.x or >= 3.4.
+  # python -- spack always requires python >= 2.6 to do anything.
+  # On x86, intel-xed requires python 2.7.x or >= 3.4.
 
   # Example for system python.
   # python:
@@ -326,12 +340,12 @@ packages:
   # Adding MPI here is only for building hpcprof-mpi, the MPI version
   # of hpcprof.
   #
-  # Normally, you want MPI from a module that was built for the
-  # correct interconnect system for the compute nodes.  Also, for
-  # hpcprof-mpi, MPI should be built with GNU gcc/g++ and the same
-  # version used to build hpctoolkit (to keep the C++ libraries in
-  # sync).
-
+  # Normally, you want MPI from a module (mpich, mvapich, openmpi)
+  # that was built for the correct interconnect system for the compute
+  # nodes.  Also, for hpcprof-mpi, MPI should be built with GNU
+  # gcc/g++ and the same version used to build hpctoolkit (to keep the
+  # C++ libraries in sync).
+  #
   # openmpi:
   #   modules:
   #     openmpi@2.1.3:  OpenMPI/2.1.3

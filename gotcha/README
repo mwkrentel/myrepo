@@ -1,0 +1,47 @@
+
+This directory is a test of using gotcha and ld-preload to override
+application functions as a replacement for libmonitor in the dynamic
+case.
+
+Copyright (c) 2019, Rice University.
+See the file LICENSE for details.
+
+Mark W. Krentel
+Rice University
+August 2019
+
+------------------------------------------------------------
+
+Four ways to override functions (dynamic case).
+
+  1. pure gotcha -- override all functions with gotcha, run
+  gotcha_wrap() from a preload init constructor.
+
+  2. pure preload -- override all functions with LD_PRELOAD, this is
+  what libmonitor does now.
+
+  3. hybrid -- override __libc_start_main() and pthread_create() with
+  LD_PRELOAD, then call gotcha_wrap() from first contact.
+
+  4. preinit -- link a .o file into main binary with preinit init
+  constructor.
+
+------------------------------------------------------------
+
+How to setup and run tests.
+
+  1. Spack install gotcha (requires cmake), gperftools (for tcmalloc)
+  and libunwind (prereq for tcmalloc).
+
+  2. ./setup.sh  path/to/spack/install/linux-rhel7-x86_64/gcc-x.y.z
+  --->  makefile.incl and run-xxx
+
+  3. Edit libreduce.c for name of "libm.so.6", if needed.
+
+  4. make
+  --->  reduce, etc, libmygotcha.so, etc, run-xxx, etc.
+
+  5. ./run-xxx  ./reduce
+
+Look for what functions are intercepted.
+

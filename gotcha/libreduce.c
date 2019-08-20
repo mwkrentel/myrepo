@@ -20,6 +20,8 @@
 
 #include <omp.h>
 
+#define LIBM  "libm.so.6"
+
 typedef double sin_fcn_t (double);
 
 static sin_fcn_t * sin_fcn = NULL;
@@ -29,7 +31,7 @@ libreduce_ctor(void)
 {
     printf("libreduce: init ctor\n");
 
-    void * handle = dlopen("libm.so.6", RTLD_LAZY);
+    void * handle = dlopen(LIBM, RTLD_LAZY);
     if (handle == NULL) {
 	err(1, "unable to dlopen(libm)");
     }

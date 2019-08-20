@@ -9,12 +9,16 @@
  */
 
 #include <sys/types.h>
+#include <dlfcn.h>
 #include <err.h>
 #include <errno.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 #include <omp.h>
+
+#define LIBM  "libm.so.6"
 
 double reduce(double *, int);
 
@@ -31,6 +35,25 @@ main(int argc, char **argv)
     double * A = (double *) malloc(N * sizeof(double));
     if (A == NULL) {
 	err(1, "malloc array failed");
+    }
+
+    printf("main: calling dlopen() and sigprocmask() ...\n");
+
+#pragma omp parallel
+    {
+        sigset_t * set = (sigset_t *) malloc(sizeof(sigset_t));
+        sigemptyset(set);
+        int ret = sigprocmask(SIG_BLOCK, set, NULL);
+
+	if (ret != 0) {
+	    warn("sigprocmask() failed");
+	}
+
+	void * handle = dlopen(LIBM, RTLD_LAZY);
+
+	if (handle == NULL) {
+	    warn("dlopen() failed");
+	}
     }
 
     double ans = 0.0;

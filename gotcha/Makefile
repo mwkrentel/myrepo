@@ -31,9 +31,11 @@ RPATH_TCM = -Wl,-rpath=$(TCMALLOC)/lib  -Wl,-rpath=$(UNWIND)/lib
 
 #------------------------------------------------------------
 
-PROGS = reduce  red-tcmalloc  red-minimal
+PROGS = reduce  reduce-tcmalloc  reduce-minimal
 
 LIBS = libmygotcha.so  libpreload.so  libhybrid.so
+
+SCRIPTS = run-gotcha  run-hybrid  run-preload
 
 all: progs libs
 
@@ -45,22 +47,22 @@ libs:  $(LIBS)
 
 #------------------------------------------------------------
 
-reduce: reduce.c libreduce.so
-	$(CC)  -o $@  $<  $(CFLAGS)  $(OPENMP)  $(RPATH_TOP)  \
-	-L$(TOPDIR)  -lreduce
-
 libreduce.so: libreduce.c
 	$(CC)  -o $@  $<  $(CFLAGS)  -shared  $(PIC)  $(OPENMP)  -ldl
 
-red-tcmalloc: reduce.c libreduce.so
-	$(CC)  -o $@  $<  $(CFLAGS)  $(OPENMP)  $(RPATH_TOP)  $(RPATH_TCM)  \
-	$(SAFE_FLAGS)  \
-	-L$(TOPDIR)  -lreduce  -L$(TCMALLOC)/lib -ltcmalloc
+reduce: reduce.c libreduce.so
+	$(CC)  -o $@  $<  $(CFLAGS)  $(OPENMP)  $(RPATH_TOP)  \
+	-L$(TOPDIR)  -lreduce  -ldl
 
-red-minimal: reduce.c libreduce.so
-	$(CC)  -o $@  $<  $(CFLAGS)  $(OPENMP)  $(RPATH_TOP)  $(RPATH_TCM)  \
-	$(SAFE_FLAGS)  \
-	-L$(TOPDIR)  -lreduce  -L$(TCMALLOC)/lib -ltcmalloc_minimal
+reduce-tcmalloc: reduce.c libreduce.so
+	$(CC)  -o $@  $<  $(CFLAGS)  $(OPENMP)  $(SAFE_FLAGS)  \
+	$(RPATH_TOP)  $(RPATH_TCM)  \
+	-L$(TOPDIR)  -lreduce  -L$(TCMALLOC)/lib -ltcmalloc  -ldl
+
+reduce-minimal: reduce.c libreduce.so
+	$(CC)  -o $@  $<  $(CFLAGS)  $(OPENMP)  $(SAFE_FLAGS)  \
+	$(RPATH_TOP)  $(RPATH_TCM)  \
+	-L$(TOPDIR)  -lreduce  -L$(TCMALLOC)/lib -ltcmalloc_minimal  -ldl
 
 libmygotcha.so: gotcha.c
 	$(GCC)  -o $@  $<  $(CFLAGS)  -shared  $(PIC)  \
@@ -77,5 +79,5 @@ clean:
 	rm -f  $(PROGS)  $(LIBS)  *~  *.o  *.so
 
 distclean: clean
-	rm -f  makefile.incl  run-gotcha  run-hybrid  run-preload
+	rm -f  $(SCRIPTS)  makefile.incl
 

@@ -10,7 +10,10 @@
 #  August 2019
 #
 #  Usage:
-#    ./setup.sh  path/to/spack/linux-redhat-x86/gcc-x.y.z
+#    ./setup.sh  /path/to/spack/tools/dir  [ /path/to/spack/app/dir ]
+#
+#  Tools dir is for gotcha (GNU)
+#  App dir is for gperftools and libunwind
 #
 
 die() {
@@ -18,21 +21,12 @@ die() {
     exit 1
 }
 
-SPACK_INSTALL="$1"
+TOOLS_DIR="$1"
+APP_DIR="$2"
 
 make_incl=makefile.incl
 
 topdir=`/bin/pwd`
-
-#------------------------------------------------------------
-
-test "x$SPACK_INSTALL" != x || die "missing spack install directory"
-
-cd "$SPACK_INSTALL" || die "unable to cd: $SPACK_INSTALL"
-
-ABS_SPACK=`/bin/pwd`
-
-cd "$topdir" || die "unable to cd: $topdir"
 
 #------------------------------------------------------------
 
@@ -71,9 +65,26 @@ spackdir()
 
 #------------------------------------------------------------
 
+test "x$TOOLS_DIR" != x || die "missing spack install directory"
+
+cd "$TOOLS_DIR" || die "unable to cd: $TOOLS_DIR"
+ABS_SPACK=`/bin/pwd`
+
+cd "$topdir" || die "unable to cd: $topdir"
+
 GOTCHA=`spackdir gotcha`
+
+if test "x$APP_DIR" != x ; then
+    cd "$APP_DIR" || die "unable to cd: $APP_DIR"
+    ABS_SPACK=`/bin/pwd`
+fi
+
+cd "$topdir" || die "unable to cd: $topdir"
+
 TCMALLOC=`spackdir gperftools`
 UNWIND=`spackdir libunwind`
+
+#------------------------------------------------------------
 
 rm -f "$make_incl"
 

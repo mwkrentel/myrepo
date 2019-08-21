@@ -1,6 +1,8 @@
 #
 #  Build libs and apps for testing gotcha.
-#  First, run:  ./setup path/to/spack
+#
+#  ./setup  path/to/spack/tools-compiler/dir  \
+#      [ path/to/spack/app-compiler/dir ]
 #
 #  Copyright (c) 2019, Rice University.
 #  See the file LICENSE for details.
@@ -10,17 +12,17 @@
 #
 include makefile.incl
 
-# Application compiler
-CC = gcc
-CXX = g++
+# Tools compiler, normally GNU, for libmygotcha.so, etc.
+GCC = gcc
 
 CFLAGS = -g  -O
-OPENMP = -fopenmp
 PIC = -fPIC
 
-# Tools compiler
-GCC = gcc
-GXX = g++
+# Application compiler, any family, for reduce, etc.
+CC = $(GCC)
+
+APP_CFLAGS = $(CFLAGS)
+OPENMP = -fopenmp
 
 SAFE_FLAGS = -fno-builtin-malloc  -fno-builtin-calloc  \
 	-fno-builtin-realloc  -fno-builtin-free
@@ -31,38 +33,23 @@ RPATH_TCM = -Wl,-rpath=$(TCMALLOC)/lib  -Wl,-rpath=$(UNWIND)/lib
 
 #------------------------------------------------------------
 
-PROGS = reduce  reduce-tcmalloc  reduce-minimal
+TOOLS_LIBS = libmygotcha.so  libpreload.so  libhybrid.so
 
-LIBS = libmygotcha.so  libpreload.so  libhybrid.so
+PROG_APPS = reduce  reduce-tcmalloc  reduce-minimal
 
-SCRIPTS = run-gotcha  run-hybrid  run-preload
+SCRIPTS = run-gotcha  run-preload  run-hybrid
 
-all: progs libs
+all: tools apps
 
-progs: $(PROGS)
+tools: $(TOOLS_LIBS)
 
-libs:  $(LIBS)
+apps:  $(PROG_APPS)
 
-.PHONY:  all  progs  libs  clean  distclean
+.PHONY:  all  tools  apps  clean  distclean
 
 #------------------------------------------------------------
 
-libreduce.so: libreduce.c
-	$(CC)  -o $@  $<  $(CFLAGS)  -shared  $(PIC)  $(OPENMP)  -ldl
-
-reduce: reduce.c libreduce.so
-	$(CC)  -o $@  $<  $(CFLAGS)  $(OPENMP)  $(RPATH_TOP)  \
-	-L$(TOPDIR)  -lreduce  -ldl
-
-reduce-tcmalloc: reduce.c libreduce.so
-	$(CC)  -o $@  $<  $(CFLAGS)  $(OPENMP)  $(SAFE_FLAGS)  \
-	$(RPATH_TOP)  $(RPATH_TCM)  \
-	-L$(TOPDIR)  -lreduce  -L$(TCMALLOC)/lib -ltcmalloc  -ldl
-
-reduce-minimal: reduce.c libreduce.so
-	$(CC)  -o $@  $<  $(CFLAGS)  $(OPENMP)  $(SAFE_FLAGS)  \
-	$(RPATH_TOP)  $(RPATH_TCM)  \
-	-L$(TOPDIR)  -lreduce  -L$(TCMALLOC)/lib -ltcmalloc_minimal  -ldl
+# GNU compiler for gotcha and preload overrides
 
 libmygotcha.so: gotcha.c
 	$(GCC)  -o $@  $<  $(CFLAGS)  -shared  $(PIC)  \
@@ -75,8 +62,31 @@ libhybrid.so: hybrid.c
 	$(GCC)  -o $@  $<  $(CFLAGS)  -shared  $(PIC)  -ldl  \
 	-I $(GOTCHA)/include  -L $(GOTCHA)/lib64 -lgotcha  $(RPATH_GOT)
 
+#------------------------------------------------------------
+
+# Application compiler, any family
+
+libreduce.so: libreduce.c
+	$(CC)  -o $@  $<  $(APP_CFLAGS)  -shared  $(PIC)  $(OPENMP)  -ldl
+
+reduce: reduce.c libreduce.so
+	$(CC)  -o $@  $<  $(APP_CFLAGS)  $(OPENMP)  $(RPATH_TOP)  \
+	-L$(TOPDIR)  -lreduce  -ldl
+
+reduce-tcmalloc: reduce.c libreduce.so
+	$(CC)  -o $@  $<  $(APP_CFLAGS)  $(OPENMP)  $(SAFE_FLAGS)  \
+	$(RPATH_TOP)  $(RPATH_TCM)  \
+	-L$(TOPDIR)  -lreduce  -L$(TCMALLOC)/lib -ltcmalloc  -ldl
+
+reduce-minimal: reduce.c libreduce.so
+	$(CC)  -o $@  $<  $(APP_CFLAGS)  $(OPENMP)  $(SAFE_FLAGS)  \
+	$(RPATH_TOP)  $(RPATH_TCM)  \
+	-L$(TOPDIR)  -lreduce  -L$(TCMALLOC)/lib -ltcmalloc_minimal  -ldl
+
+#------------------------------------------------------------
+
 clean:
-	rm -f  $(PROGS)  $(LIBS)  *~  *.o  *.so
+	rm -f  $(PROG_APPS)  $(TOOLS_LIBS)  *~  *.o  *.so
 
 distclean: clean
 	rm -f  $(SCRIPTS)  makefile.incl

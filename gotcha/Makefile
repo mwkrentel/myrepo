@@ -33,9 +33,10 @@ RPATH_TCM = -Wl,-rpath=$(TCMALLOC)/lib  -Wl,-rpath=$(UNWIND)/lib
 
 #------------------------------------------------------------
 
-TOOLS_LIBS = libmygotcha.so  libpreload.so  libhybrid.so  preinit.o
+TOOLS_LIBS = libmygotcha.so  libpreload.so  libhybrid.so  \
+	preinit.o  tool-init.o
 
-PROG_APPS = reduce  reduce-tcmalloc  reduce-minimal  reduce-preinit
+PROG_APPS = reduce  reduce-tcmalloc  reduce-minimal  preinit  simple
 
 SCRIPTS = run-gotcha  run-preload  run-hybrid
 
@@ -65,6 +66,9 @@ libhybrid.so: hybrid.c
 preinit.o: preinit.c
 	$(GCC)  -c  -o $@  $<  $(CFLAGS)  -I $(GOTCHA)/include
 
+tool-init.o: tool-init.c
+	$(GCC)  -c  -o $@  $<  $(CFLAGS)  -I $(GOTCHA)/include
+
 #------------------------------------------------------------
 
 # Application compiler, any family
@@ -86,10 +90,14 @@ reduce-minimal: reduce.c libreduce.so
 	$(RPATH_TOP)  $(RPATH_TCM)  \
 	-L$(TOPDIR)  -lreduce  -L$(TCMALLOC)/lib -ltcmalloc_minimal  -ldl
 
-reduce-preinit: reduce.c preinit.o
+preinit: reduce.c libreduce.so preinit.o
 	$(CC)  -o $@  $<  $(APP_CFLAGS)  $(OPENMP)  $(RPATH_TOP)  \
 	-L$(TOPDIR)  -lreduce  -ldl  \
 	preinit.o  -L $(GOTCHA)/lib64 -lgotcha  $(RPATH_GOT)
+
+simple: simple.c tool-init.o
+	$(CC)  -o $@  $<  $(APP_CFLAGS)  $(OPENMP)  -ldl  \
+	tool-init.o  -L $(GOTCHA)/lib64 -lgotcha  $(RPATH_GOT)
 
 #------------------------------------------------------------
 

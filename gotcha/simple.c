@@ -1,11 +1,12 @@
 /*
- *  Main program for openmp and libreduce.
+ *  Simple program for openmp without init constructor.  This tests if
+ *  the runtime library creates threads on its own.
  *
  *  Copyright (c) 2019, Rice University.
  *  See the file LICENSE for details.
  *
  *  Mark W. Krentel
- *  August 2019
+ *  September 2019
  */
 
 #include <sys/types.h>
@@ -20,13 +21,38 @@
 
 #define LIBM  "libm.so.6"
 
-double reduce(double *, int);
+typedef double sin_fcn_t (double);
+
+static sin_fcn_t * sin_fcn = NULL;
+
+void gotcha_tool_init(void);
+
+//----------------------------------------------------------------------
+
+double
+reduce(double A[], int N)
+{
+    double ans;
+    int i;
+
+    ans = 0.0;
+
+#pragma omp parallel for default(none) private(i)  \
+    shared(A, N, sin_fcn)  reduction(+ : ans)
+
+    for (i = 0; i < N; i++) {
+        ans += (* sin_fcn)(A[i]);
+    }
+
+    return ans;
+}
 
 int
 main(int argc, char **argv)
 {
     printf("main: first entry\n");
-
+    gotcha_tool_init();
+  
     int i, j, N;
 
     if (argc < 2 || sscanf(argv[1], "%d", &N) < 1) {
@@ -40,6 +66,16 @@ main(int argc, char **argv)
     }
 
     printf("main: calling dlopen() and sigprocmask() ...\n");
+
+    void * handle = dlopen(LIBM, RTLD_LAZY);
+    if (handle == NULL) {
+        err(1, "unable to dlopen(libm)");
+    }
+
+    sin_fcn = dlsym(handle, "sin");
+    if (sin_fcn == NULL) {
+        err(1, "unable to dlsym(sin)");
+    }
 
 #pragma omp parallel
     {
@@ -63,7 +99,6 @@ main(int argc, char **argv)
     for (j = 0; j < N; j++) {
 
 #pragma omp parallel for default(none) private(i) shared(A, N)
-
 	for (i = 0; i < N; i++) {
 	    A[i] = (double) i;
 	}

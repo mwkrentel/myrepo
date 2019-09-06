@@ -81,7 +81,7 @@ sigprocmask(int how, void *set, void *old_set)
 void *
 dlopen(const char *name, int flags)
 {
-    printf("---> preload: override: dlopen\n");
+    printf("---> preload: override: dlopen(%s)\n", name);
 
     GET_REAL_FUNC(real_dlopen, "dlopen");
 

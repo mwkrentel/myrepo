@@ -61,7 +61,7 @@ sigprocmask_wrap(int how, void * set, void * oldset)
 static void *
 dlopen_wrap(char * name, int flags)
 {
-    printf("---> hybrid: override: dlopen\n");
+    printf("---> hybrid: override: dlopen(%s)\n", name);
 
     void * ret = real_dlopen(name, flags);
 

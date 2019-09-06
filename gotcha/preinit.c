@@ -70,7 +70,7 @@ sigprocmask_wrap(int how, void * set, void * old_set)
 static void *
 dlopen_wrap(char * name, int flags)
 {
-    printf("---> preinit: override: dlopen\n");
+    printf("---> preinit: override: dlopen(%s)\n", name);
 
     void * ret = real_dlopen(name, flags);
 

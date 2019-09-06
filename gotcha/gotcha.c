@@ -69,7 +69,7 @@ sigprocmask_wrap(int how, void * set, void * old_set)
 static void *
 dlopen_wrap(char * name, int flags)
 {
-    printf("---> gotcha: override: dlopen\n");
+    printf("---> gotcha: override: dlopen(%s)\n", name);
 
     void * ret = real_dlopen(name, flags);
 

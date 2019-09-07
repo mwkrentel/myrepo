@@ -85,7 +85,7 @@ wrap_functions(void)
 
     int i, n = sizeof(bindings)/sizeof(bindings[0]);
 
-    gotcha_wrap(bindings, n, "hybrid");
+    gotcha_wrap(bindings, n, "hybrid-monitor");
 
     real_sigprocmask = (sigprocmask_fptr) gotcha_get_wrappee(sigprocmask_handle);
     real_dlopen = (dlopen_fptr) gotcha_get_wrappee(dlopen_handle);

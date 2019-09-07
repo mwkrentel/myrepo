@@ -91,7 +91,7 @@ monitor_preinit_ctor(void)
 
     printf("---> preinit: init ctor\n");
 
-    gotcha_wrap(bindings, n, "monitor");
+    gotcha_wrap(bindings, n, "preinit-monitor");
 
     real_start_main = (start_main_fptr) gotcha_get_wrappee(start_main_handle);
     real_pthread_create = (pthread_create_fptr) gotcha_get_wrappee(pthread_create_handle);

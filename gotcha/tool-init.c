@@ -76,7 +76,7 @@ gotcha_tool_init(void)
 
     printf("---> gotcha: init ctor\n");
 
-    gotcha_wrap(bindings, n, "monitor");
+    gotcha_wrap(bindings, n, "tool-monitor");
 
     real_pthread_create = (pthread_create_fptr) gotcha_get_wrappee(pthread_create_handle);
     real_sigprocmask = (sigprocmask_fptr) gotcha_get_wrappee(sigprocmask_handle);

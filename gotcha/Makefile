@@ -33,20 +33,26 @@ RPATH_TCM = -Wl,-rpath=$(TCMALLOC)/lib  -Wl,-rpath=$(UNWIND)/lib
 
 #------------------------------------------------------------
 
-TOOLS_LIBS = libmygotcha.so  libpreload.so  libhybrid.so  \
+TOOLS = libmygotcha.so  libpreload.so  libhybrid.so  \
 	preinit.o  tool-init.o
 
-PROG_APPS = reduce  reduce-tcmalloc  reduce-minimal  preinit  simple
+APPS = reduce  preinit  simple  main
+
+TC_APPS = reduce-tcmalloc  reduce-minimal
 
 SCRIPTS = run-gotcha  run-preload  run-hybrid
 
-all: tools apps
+most: tools apps
 
-tools: $(TOOLS_LIBS)
+all:  tools apps tc-apps
 
-apps:  $(PROG_APPS)
+tools: $(TOOLS)
 
-.PHONY:  all  tools  apps  clean  distclean
+apps:  $(APPS)
+
+tc-apps:  $(TC_APPS)
+
+.PHONY:  all  tools  apps  tc-apps  clean  distclean
 
 #------------------------------------------------------------
 
@@ -99,10 +105,17 @@ simple: simple.c tool-init.o
 	$(CC)  -o $@  $<  $(APP_CFLAGS)  $(OPENMP)  -ldl  \
 	tool-init.o  -L $(GOTCHA)/lib64 -lgotcha  $(RPATH_GOT)
 
+libside.so: side.c
+	$(CC)  -o $@  $<  $(APP_CFLAGS)  -shared  $(PIC)
+
+main: main.c libside.so
+	$(CC)  -o $@  $<  $(APP_CFLAGS)  $(RPATH_TOP)  \
+	-L$(TOPDIR)  -lside
+
 #------------------------------------------------------------
 
 clean:
-	rm -f  $(PROG_APPS)  $(TOOLS_LIBS)  *~  *.o  *.so
+	rm -f  $(TOOLS)  $(APPS)  $(TC_APPS)  *~  *.o  *.so
 
 distclean: clean
 	rm -f  $(SCRIPTS)  makefile.incl

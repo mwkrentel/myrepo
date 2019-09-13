@@ -34,9 +34,9 @@ RPATH_TCM = -Wl,-rpath=$(TCMALLOC)/lib  -Wl,-rpath=$(UNWIND)/lib
 #------------------------------------------------------------
 
 TOOLS = libmygotcha.so  libpreload.so  libhybrid.so  \
-	preinit.o  tool-init.o
+	preinit.o  tool-init.o  wrap.o
 
-APPS = reduce  preinit  simple  main
+APPS = reduce  preinit  simple  main  wrap-main  wrap-reduce
 
 TC_APPS = reduce-tcmalloc  reduce-minimal
 
@@ -75,6 +75,9 @@ preinit.o: preinit.c
 tool-init.o: tool-init.c
 	$(GCC)  -c  -o $@  $<  $(CFLAGS)  -I $(GOTCHA)/include
 
+wrap.o: wrap.c  libmygotcha.so
+	$(GCC)  -c  -o $@  $<  $(CFLAGS)  -I $(GOTCHA)/include
+
 #------------------------------------------------------------
 
 # Application compiler, any family
@@ -82,9 +85,15 @@ tool-init.o: tool-init.c
 libreduce.so: libreduce.c
 	$(CC)  -o $@  $<  $(APP_CFLAGS)  -shared  $(PIC)  $(OPENMP)  -ldl
 
-reduce: reduce.c libreduce.so
+reduce: reduce.c  libreduce.so
 	$(CC)  -o $@  $<  $(APP_CFLAGS)  $(OPENMP)  $(RPATH_TOP)  \
 	-L$(TOPDIR)  -lreduce  -ldl
+
+wrap-reduce: reduce.c  libreduce.so  wrap.o
+	$(CC)  -o $@  $<  $(APP_CFLAGS)  $(OPENMP)  $(RPATH_TOP)  \
+	-L$(TOPDIR)  -lreduce  -ldl  \
+	-Wl,--wrap=main  wrap.o  \
+	-L $(GOTCHA)/lib64 -lgotcha  $(RPATH_GOT)
 
 reduce-tcmalloc: reduce.c libreduce.so
 	$(CC)  -o $@  $<  $(APP_CFLAGS)  $(OPENMP)  $(SAFE_FLAGS)  \
@@ -108,9 +117,15 @@ simple: simple.c tool-init.o
 libside.so: side.c
 	$(CC)  -o $@  $<  $(APP_CFLAGS)  -shared  $(PIC)
 
-main: main.c libside.so
+main: main.c  libside.so
 	$(CC)  -o $@  $<  $(APP_CFLAGS)  $(RPATH_TOP)  \
 	-L$(TOPDIR)  -lside
+
+wrap-main: main.c  libside.so  wrap.o
+	$(CC)  -o $@  $<  $(APP_CFLAGS)  $(RPATH_TOP)  \
+	-L$(TOPDIR)  -lside  \
+	-Wl,--wrap=main  wrap.o  \
+	-L $(GOTCHA)/lib64 -lgotcha  $(RPATH_GOT)
 
 #------------------------------------------------------------
 

@@ -117,6 +117,60 @@ if test $? -ne 0 ; then
 fi
 
 #------------------------------------------------------------
+# Option: --with-gotcha=PATH
+#------------------------------------------------------------
+
+multilib_path='lib64 lib'
+
+GOTCHA=no
+
+AC_ARG_WITH([gotcha],
+    [AS_HELP_STRING([--with-gotcha=PATH],
+        [path to gotcha install directory])],
+    [GOTCHA="$withval"],
+    [])
+
+GOTCHA_IFLAGS=
+GOTCHA_LFLAGS=
+
+AC_MSG_CHECKING([for gotcha])
+
+case "$GOTCHA" in
+    /* )
+        if test -f "${GOTCHA}/include/gotcha/gotcha.h" ; then :
+	else
+	    AC_MSG_ERROR([unable to find gotcha.h in: $GOTCHA])
+	fi
+	GOTCHA_IFLAGS="-I${GOTCHA}/include"
+
+	for lib in $multilib_path ; do
+	    if test -f "${GOTCHA}/${lib}/libgotcha.so" ; then
+	        GOTCHA_LFLAGS="-L${GOTCHA}/$lib -lgotcha"
+		break
+	    fi
+	done
+	if test "x$GOTCHA_LFLAGS" = x ; then
+	    AC_MSG_ERROR([unable to find libgotcha.so in: $GOTCHA])
+	fi
+	;;
+    no )
+	;;
+    * )
+        AC_MSG_ERROR([gotcha directory must be absolute path: $GOTCHA])
+	;;
+esac
+
+AC_MSG_RESULT([$GOTCHA])
+
+if test "x$GOTCHA_IFLAGS" = x ; then
+    AC_MSG_WARN([gotcha is required for libmonitor])
+    AC_MSG_ERROR([must use --with-gotcha=PATH to specify path to gotcha])
+fi
+
+AC_SUBST([GOTCHA_IFLAGS])
+AC_SUBST([GOTCHA_LFLAGS])
+
+#------------------------------------------------------------
 # Option: --enable-start-main=TYPE
 #------------------------------------------------------------
 
@@ -164,5 +218,7 @@ AC_MSG_NOTICE([path: $CC_PATH])
 AC_MSG_NOTICE([CC:   $CC])
 AC_MSG_NOTICE([CFLAGS:   $CFLAGS])
 AC_MSG_NOTICE([CPPFLAGS: $CPPFLAGS])
+
+AC_MSG_NOTICE([gotcha: $GOTCHA])
 
 AC_MSG_NOTICE([start main type: $enable_start_main])

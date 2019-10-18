@@ -32,16 +32,25 @@
 ##  if advised of the possibility of such damage.
 ##
 
+GOTCHA_IFLAGS = @GOTCHA_IFLAGS@
+GOTCHA_LFLAGS = @GOTCHA_LFLAGS@
+
 MONITOR_SRC_FILES = main.c pthread.c
 
 lib_LTLIBRARIES = libmonitor-preload.la
 
 libmonitor_preload_la_SOURCES = $(MONITOR_SRC_FILES)
-libmonitor_preload_la_CPPFLAGS = -DMONITOR_PRELOAD
+libmonitor_preload_la_CPPFLAGS = -DMONITOR_PRELOAD $(GOTCHA_IFLAGS)
 libmonitor_preload_la_LDFLAGS = -ldl
 
-lib_LIBRARIES = libmonitor-preinit.a
+# Automake won't install a program (.o) into libdir, so we use noinst
+# and install it manually.
 
-libmonitor_preinit_a_SOURCES = $(MONITOR_SRC_FILES)
-libmonitor_preinit_a_CPPFLAGS = -DMONITOR_PREINIT
+noinst_PROGRAMS = libmonitor-preinit.o
+
+libmonitor_preinit_o_SOURCES = $(MONITOR_SRC_FILES)
+libmonitor_preinit_o_CPPFLAGS = -DMONITOR_PREINIT $(GOTCHA_IFLAGS)
+
+install-exec-hook:
+	$(INSTALL) libmonitor-preinit.o $(DESTDIR)$(libdir)
 

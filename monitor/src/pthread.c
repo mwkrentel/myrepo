@@ -39,6 +39,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <gotcha/gotcha.h>
 #include <pthread.h>
 
 #include "monitor-config.h"
@@ -53,7 +54,8 @@ struct monitor_thread_node {
     void * tn_arg;
 };
 
-extern pthread_create_fcn_t __real_pthread_create;
+static gotcha_wrappee_handle_t  pthread_create_handle;
+static pthread_create_fcn_t  * real_pthread_create;
 
 //----------------------------------------------------------------------
 
@@ -98,15 +100,35 @@ int __wrap_pthread_create
     tn->tn_arg = arg;
 
 #ifdef MONITOR_PRELOAD
-    pthread_create_fcn_t *real_pthread_create = NULL;
-
     GET_DLSYM_FUNC(real_pthread_create, "pthread_create");
+#endif
 
     ret = (* real_pthread_create) (thread, attr, &monitor_begin_thread, tn);
 
-#else
-    ret = __real_pthread_create (thread, attr, &monitor_begin_thread, tn);
-#endif
-
     return ret;
 }
+
+//----------------------------------------------------------------------
+
+/*
+ *  Preinit constructor to run gotcha-wrap on pthread_create().  This
+ *  is run before library init constructors.
+ */
+#ifdef MONITOR_PREINIT
+
+static gotcha_binding_t thread_bindings [] = {
+    { "pthread_create", __wrap_pthread_create, &pthread_create_handle },
+};
+
+void
+monitor_preinit_ctor(void)
+{
+    gotcha_wrap(thread_bindings, 1, "libmonitor");
+
+    real_pthread_create = (pthread_create_fcn_t *) gotcha_get_wrappee(pthread_create_handle);
+}
+
+__attribute__ ((section(".preinit_array")))
+typeof(monitor_preinit_ctor) * monitor_preinit = monitor_preinit_ctor;
+
+#endif

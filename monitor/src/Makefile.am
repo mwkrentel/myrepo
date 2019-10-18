@@ -32,20 +32,16 @@
 ##  if advised of the possibility of such damage.
 ##
 
+MONITOR_SRC_FILES = main.c pthread.c
+
 lib_LTLIBRARIES = libmonitor-preload.la
 
-libmonitor_preload_la_SOURCES = main.c
+libmonitor_preload_la_SOURCES = $(MONITOR_SRC_FILES)
 libmonitor_preload_la_CPPFLAGS = -DMONITOR_PRELOAD
 libmonitor_preload_la_LDFLAGS = -ldl
 
-# Automake won't install a program (.o) into libdir, so we use noinst
-# and install it manually.
+lib_LIBRARIES = libmonitor-preinit.a
 
-noinst_PROGRAMS = libmonitor-preinit.o
-
-libmonitor_preinit_o_SOURCES = main.c
-libmonitor_preinit_o_CPPFLAGS = -DMONITOR_PREINIT
-
-install-exec-hook:
-	$(INSTALL) libmonitor-preinit.o $(DESTDIR)$(libdir)
+libmonitor_preinit_a_SOURCES = $(MONITOR_SRC_FILES)
+libmonitor_preinit_a_CPPFLAGS = -DMONITOR_PREINIT
 

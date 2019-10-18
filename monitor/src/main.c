@@ -39,18 +39,7 @@
 #include <stdio.h>
 
 #include "monitor-config.h"
-
-#ifndef RTLD_NEXT
-#define RTLD_NEXT  ((void *) -1l)
-#endif
-
-#define GET_REAL_FUNC(var, name)		\
-    if ( var == NULL ) {			\
-        var = dlsym(RTLD_NEXT, name);		\
-	if ( var == NULL ) {			\
-	    errx(1, "dlsym(" name ")failed");	\
-	}					\
-    }
+#include "common.h"
 
 /*
  *  Powerpc adds a fourth argument to main().
@@ -115,7 +104,7 @@ __libc_start_main(int argc, char **argv, char **envp, void *auxp,
 {
     start_main_fcn_t *real_start_main = NULL;
 
-    GET_REAL_FUNC(real_start_main, "__libc_start_main");
+    GET_DLSYM_FUNC(real_start_main, "__libc_start_main");
 
     real_main = (main_fcn_t *) stinfo[1];
     new_stinfo[0] = stinfo[0];
@@ -140,7 +129,7 @@ __libc_start_main(main_fcn_t *main, int argc, char **argv, void *init,
 {
     start_main_fcn_t *real_start_main = NULL;
 
-    GET_REAL_FUNC(real_start_main, "__libc_start_main");
+    GET_DLSYM_FUNC(real_start_main, "__libc_start_main");
 
     real_main = main;
 

@@ -44,6 +44,7 @@
 
 #include "monitor-config.h"
 #include "common.h"
+#include "monitor.h"
 
 typedef void * (pthread_start_fcn_t) (void *);
 typedef int (pthread_create_fcn_t)
@@ -64,16 +65,16 @@ static pthread_create_fcn_t  * real_pthread_create;
  *  pthread_create(), where the newly created thread begins.
  */
 static void *
-monitor_begin_thread(void *arg)
+monitor_thread_start_routine(void *arg)
 {
     struct monitor_thread_node *tn = (struct monitor_thread_node *) arg;
     void *ret;
 
-    printf("---> monitor: begin thread\n");
+    monitor_begin_thread_cb();
 
     ret = (tn->tn_start_routine) (tn->tn_arg);
 
-    printf("---> monitor: end thread\n");
+    monitor_end_thread_cb();
 
     return ret;
 }
@@ -103,7 +104,7 @@ int __wrap_pthread_create
     GET_DLSYM_FUNC(real_pthread_create, "pthread_create");
 #endif
 
-    ret = (* real_pthread_create) (thread, attr, &monitor_begin_thread, tn);
+    ret = (* real_pthread_create) (thread, attr, &monitor_thread_start_routine, tn);
 
     return ret;
 }

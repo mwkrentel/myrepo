@@ -40,6 +40,7 @@
 
 #include "monitor-config.h"
 #include "common.h"
+#include "monitor.h"
 
 /*
  *  Powerpc adds a fourth argument to main().
@@ -71,7 +72,7 @@ __wrap_main(int argc, char **argv, char **envp  AUXVEC_DECL )
 {
     int ret;
 
-    printf("---> monitor: begin process\n");
+    monitor_begin_process_cb();
 
 #if defined(MONITOR_PRELOAD)
     ret = (* real_main) (argc, argv, envp  AUXVEC_ARG );
@@ -79,7 +80,7 @@ __wrap_main(int argc, char **argv, char **envp  AUXVEC_DECL )
     ret = __real_main (argc, argv, envp  AUXVEC_ARG );
 #endif
 
-    printf("---> monitor: end process\n");
+    monitor_end_process_cb();
 
     return ret;
 }

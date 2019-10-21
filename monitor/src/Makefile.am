@@ -35,7 +35,7 @@
 GOTCHA_IFLAGS = @GOTCHA_IFLAGS@
 GOTCHA_LFLAGS = @GOTCHA_LFLAGS@
 
-MONITOR_SRC_FILES = main.c pthread.c
+MONITOR_SRC_FILES = main.c pthread.c callback.c
 
 lib_LTLIBRARIES = libmonitor-preload.la
 

@@ -1,0 +1,136 @@
+#!/bin/sh
+#
+#  Copyright (c) 2019, Rice University.
+#  All rights reserved.
+#
+#  Redistribution and use in source and binary forms, with or without
+#  modification, are permitted provided that the following conditions are
+#  met:
+#
+#  * Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#
+#  * Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the distribution.
+#
+#  * Neither the name of Rice University (RICE) nor the names of its
+#    contributors may be used to endorse or promote products derived from
+#    this software without specific prior written permission.
+#
+#  This software is provided by RICE and contributors "as is" and any
+#  express or implied warranties, including, but not limited to, the
+#  implied warranties of merchantability and fitness for a particular
+#  purpose are disclaimed. In no event shall RICE or contributors be
+#  liable for any direct, indirect, incidental, special, exemplary, or
+#  consequential damages (including, but not limited to, procurement of
+#  substitute goods or services; loss of use, data, or profits; or
+#  business interruption) however caused and on any theory of liability,
+#  whether in contract, strict liability, or tort (including negligence
+#  or otherwise) arising in any way out of the use of this software, even
+#  if advised of the possibility of such damage.
+#
+# ----------------------------------------------------------------------
+#
+#  Run an application with libmonitor-preload.so and callback
+#  functions dynamically linked in with LD_PRELOAD.
+#
+#  Usage: monitor-run [options] command arg ...
+#
+#    -d, --debug
+#    -h, --help
+#    -i, --insert  <file.so>
+#
+#  where <file.so> is a shared object file containing definitions of
+#  the callback functions (may be used multiple times).
+#
+
+prefix="@prefix@"
+exec_prefix="@exec_prefix@"
+libdir="@libdir@"
+monitor_preload="${libdir}/libmonitor-preload.so"
+
+#----------------------------------------------------------------------
+
+die()
+{
+    echo "$0: error: $*" 1>&2
+    exit 1
+}
+
+usage()
+{
+    cat <<EOF
+Usage: $0 [options] command arg ...
+
+   -d, --debug
+   -h, --help
+   -i, --insert  <file.so>
+
+where <file.so> is a shared object file containing definitions of
+the callback functions (may be used multiple times).
+
+EOF
+    exit 0
+}
+
+#----------------------------------------------------------------------
+
+preload_files=
+
+#
+#  Our options come first.
+#
+while test "x$1" != x
+do
+    case "$1" in
+	-d | -debug | --debug )
+	    export MONITOR_DEBUG=1
+	    shift
+	    ;;
+
+	-h | -help | --help )
+	    usage
+	    ;;
+
+	-i | -insert | --insert )
+	    # LD_PRELOAD prefers absolute path.
+	    test "x$2" != x || die "missing argument: $*"
+	    case "$2" in
+		/* )  file="$2" ;;
+		* )   file="`pwd`/$2" ;;
+	    esac
+	    test -f "$file" || die "unable to find: $file"
+	    preload_files="${preload_files}:${file}"
+	    shift ; shift
+	    ;;
+
+	-- )
+	    shift
+	    break
+	    ;;
+
+	-* )
+	    die "unknown option: $1"
+	    ;;
+
+	* )
+	    break
+	    ;;
+    esac
+done
+
+#----------------------------------------------------------------------
+#
+#  Set LD_PRELOAD and launch command.  Must have at least a command
+#  name.  Libgotcha is rpath'd into libmonitor, so we don't need to
+#  set LD_LIBRARY_PATH here.
+#
+test "x$1" != x || usage
+
+test -f "$monitor_preload" || die "unable to find: $monitor_preload"
+
+LD_PRELOAD="${preload_files}:${monitor_preload}:${LD_PRELOAD}"
+export LD_PRELOAD
+
+exec "$@"

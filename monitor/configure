@@ -638,6 +638,7 @@ ac_subst_vars='am__EXEEXT_FALSE
 am__EXEEXT_TRUE
 LTLIBOBJS
 LIBOBJS
+GOTCHA_LIBDIR
 GOTCHA_LFLAGS
 GOTCHA_IFLAGS
 CC_PATH
@@ -13217,7 +13218,13 @@ $as_echo "$ac_cv_path_SED" >&6; }
   rm -f conftest.sed
 
 
-ac_config_files="$ac_config_files Makefile src/Makefile"
+ac_config_files="$ac_config_files Makefile"
+
+ac_config_files="$ac_config_files src/Makefile"
+
+ac_config_files="$ac_config_files src/monitor-run"
+
+ac_config_files="$ac_config_files src/monitor-link"
 
 
 ac_ext=c
@@ -13333,6 +13340,7 @@ fi
 
 GOTCHA_IFLAGS=
 GOTCHA_LFLAGS=
+GOTCHA_LIBDIR=
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for gotcha" >&5
 $as_echo_n "checking for gotcha... " >&6; }
@@ -13347,13 +13355,14 @@ case "$GOTCHA" in
 
 	for lib in $multilib_path ; do
 	    if test -f "${GOTCHA}/${lib}/libgotcha.so" ; then
-	        GOTCHA_LFLAGS="-L${GOTCHA}/$lib -lgotcha"
+	        GOTCHA_LIBDIR="${GOTCHA}/$lib"
 		break
 	    fi
 	done
-	if test "x$GOTCHA_LFLAGS" = x ; then
+	if test "x$GOTCHA_LIBDIR" = x ; then
 	    as_fn_error $? "unable to find libgotcha.so in: $GOTCHA" "$LINENO" 5
 	fi
+	GOTCHA_LFLAGS="-L$GOTCHA_LIBDIR -lgotcha"
 	;;
     no )
 	;;
@@ -13370,6 +13379,7 @@ if test "x$GOTCHA_IFLAGS" = x ; then
 $as_echo "$as_me: WARNING: gotcha is required for libmonitor" >&2;}
     as_fn_error $? "must use --with-gotcha=PATH to specify path to gotcha" "$LINENO" 5
 fi
+
 
 
 
@@ -14433,6 +14443,8 @@ do
     "libtool") CONFIG_COMMANDS="$CONFIG_COMMANDS libtool" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "src/Makefile") CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
+    "src/monitor-run") CONFIG_FILES="$CONFIG_FILES src/monitor-run" ;;
+    "src/monitor-link") CONFIG_FILES="$CONFIG_FILES src/monitor-link" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac

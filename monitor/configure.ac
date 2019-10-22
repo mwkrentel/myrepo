@@ -64,7 +64,10 @@ AC_PROG_AWK
 AC_PROG_GREP
 AC_PROG_SED
 
-AC_CONFIG_FILES([Makefile src/Makefile])
+AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([src/Makefile])
+AC_CONFIG_FILES([src/monitor-run])
+AC_CONFIG_FILES([src/monitor-link])
 
 AC_LANG([C])
 
@@ -132,6 +135,7 @@ AC_ARG_WITH([gotcha],
 
 GOTCHA_IFLAGS=
 GOTCHA_LFLAGS=
+GOTCHA_LIBDIR=
 
 AC_MSG_CHECKING([for gotcha])
 
@@ -145,13 +149,14 @@ case "$GOTCHA" in
 
 	for lib in $multilib_path ; do
 	    if test -f "${GOTCHA}/${lib}/libgotcha.so" ; then
-	        GOTCHA_LFLAGS="-L${GOTCHA}/$lib -lgotcha"
+	        GOTCHA_LIBDIR="${GOTCHA}/$lib"
 		break
 	    fi
 	done
-	if test "x$GOTCHA_LFLAGS" = x ; then
+	if test "x$GOTCHA_LIBDIR" = x ; then
 	    AC_MSG_ERROR([unable to find libgotcha.so in: $GOTCHA])
 	fi
+	GOTCHA_LFLAGS="-L$GOTCHA_LIBDIR -lgotcha"
 	;;
     no )
 	;;
@@ -169,6 +174,7 @@ fi
 
 AC_SUBST([GOTCHA_IFLAGS])
 AC_SUBST([GOTCHA_LFLAGS])
+AC_SUBST([GOTCHA_LIBDIR])
 
 #------------------------------------------------------------
 # Option: --enable-start-main=TYPE

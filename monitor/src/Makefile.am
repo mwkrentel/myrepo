@@ -35,7 +35,13 @@
 GOTCHA_IFLAGS = @GOTCHA_IFLAGS@
 GOTCHA_LFLAGS = @GOTCHA_LFLAGS@
 
+MONITOR_SCRIPT_FILES = monitor-run monitor-link
+
 MONITOR_SRC_FILES = main.c pthread.c callback.c
+
+bin_SCRIPTS = $(MONITOR_SCRIPT_FILES)
+
+CLEANFILES = $(MONITOR_SCRIPT_FILES)
 
 lib_LTLIBRARIES = libmonitor-preload.la
 

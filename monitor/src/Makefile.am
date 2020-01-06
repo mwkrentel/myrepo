@@ -1,7 +1,7 @@
 ##
 ##  Libmonitor src/Makefile.am.
 ##
-##  Copyright (c) 2019, Rice University.
+##  Copyright (c) 2019-2020, Rice University.
 ##  All rights reserved.
 ##
 ##  Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,7 @@
 
 GOTCHA_IFLAGS = @GOTCHA_IFLAGS@
 GOTCHA_LFLAGS = @GOTCHA_LFLAGS@
+GOTCHA_LIBDIR = @GOTCHA_LIBDIR@
 
 MONITOR_SCRIPT_FILES = monitor-run monitor-link
 
@@ -43,20 +44,28 @@ bin_SCRIPTS = $(MONITOR_SCRIPT_FILES)
 
 CLEANFILES = $(MONITOR_SCRIPT_FILES)
 
-lib_LTLIBRARIES = libmonitor-preload.la
+lib_LTLIBRARIES = libmonitor-preload.la libmonitor-pure-preload.la
 
 libmonitor_preload_la_SOURCES = $(MONITOR_SRC_FILES)
-libmonitor_preload_la_CPPFLAGS = -DMONITOR_PRELOAD $(GOTCHA_IFLAGS)
-libmonitor_preload_la_LDFLAGS = -ldl
+libmonitor_preload_la_CPPFLAGS = -DMONITOR_GOTCHA_PRELOAD $(GOTCHA_IFLAGS)
+libmonitor_preload_la_LDFLAGS = -ldl $(GOTCHA_LFLAGS) -Wl,-rpath=$(GOTCHA_LIBDIR)
+
+libmonitor_pure_preload_la_SOURCES = $(MONITOR_SRC_FILES)
+libmonitor_pure_preload_la_CPPFLAGS = -DMONITOR_PURE_PRELOAD
+libmonitor_pure_preload_la_LDFLAGS = -ldl
 
 # Automake won't install a program (.o) into libdir, so we use noinst
 # and install it manually.
 
-noinst_PROGRAMS = libmonitor-preinit.o
+noinst_PROGRAMS = libmonitor-link.o libmonitor-static.o
 
-libmonitor_preinit_o_SOURCES = $(MONITOR_SRC_FILES)
-libmonitor_preinit_o_CPPFLAGS = -DMONITOR_PREINIT $(GOTCHA_IFLAGS)
+libmonitor_link_o_SOURCES = $(MONITOR_SRC_FILES)
+libmonitor_link_o_CPPFLAGS = -DMONITOR_GOTCHA_LINK $(GOTCHA_IFLAGS)
+
+libmonitor_static_o_SOURCES = $(MONITOR_SRC_FILES)
+libmonitor_static_o_CPPFLAGS = -DMONITOR_STATIC
 
 install-exec-hook:
-	$(INSTALL) libmonitor-preinit.o $(DESTDIR)$(libdir)
+	$(INSTALL) libmonitor-link.o $(DESTDIR)$(libdir)
+	$(INSTALL) libmonitor-static.o $(DESTDIR)$(libdir)
 

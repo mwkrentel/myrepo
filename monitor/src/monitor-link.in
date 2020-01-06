@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-#  Copyright (c) 2019, Rice University.
+#  Copyright (c) 2019-2020, Rice University.
 #  All rights reserved.
 #
 #  Redistribution and use in source and binary forms, with or without
@@ -37,6 +37,7 @@
 #
 #  Usage: monitor-link [options] compiler arg ...
 #
+#    -S, --static
 #    -h, --help
 #    -v, --verbose
 #    -i, --insert  <file>
@@ -48,7 +49,8 @@
 prefix="@prefix@"
 exec_prefix="@exec_prefix@"
 libdir="@libdir@"
-monitor_preinit="${libdir}/libmonitor-preinit.o"
+monitor_link="${libdir}/libmonitor-link.o"
+monitor_static="${libdir}/libmonitor-static.o"
 
 gotcha_libdir="@GOTCHA_LIBDIR@"
 
@@ -65,6 +67,7 @@ usage()
     cat <<EOF
 Usage: $0 [options] compiler arg ...
 
+   -S, --static
    -h, --help
    -v, --verbose
    -i, --insert  <file>
@@ -79,6 +82,7 @@ EOF
 #----------------------------------------------------------------------
 
 insert_files=
+static=no
 verbose=no
 
 #
@@ -96,6 +100,11 @@ do
 	    test -f "$2" || die "unable to find: $2"
 	    insert_files="${insert_files} $2"
 	    shift ; shift
+	    ;;
+
+	-S | --static )
+	    static=yes
+	    shift
 	    ;;
 
 	-v | -verbose | --verbose )
@@ -125,12 +134,21 @@ done
 #
 test "x$1" != x || usage
 
-set -- "$@"  \
-    -Wl,--wrap=main  \
-    "$monitor_preinit"  \
-    $insert_files  \
-    "-L$gotcha_libdir" -lgotcha  \
-    "-Wl,-rpath=$gotcha_libdir"
+if test "$static" = yes
+then
+    set -- "$@"  \
+	-Wl,--wrap=main  \
+	-Wl,--wrap=pthread_create  \
+	"$monitor_static"  \
+	$insert_files
+else
+    set -- "$@"  \
+	-Wl,--wrap=main  \
+	"$monitor_link"  \
+	$insert_files  \
+	"-L$gotcha_libdir" -lgotcha  \
+	"-Wl,-rpath=$gotcha_libdir"
+fi
 
 if test "$verbose" = yes ; then
     echo "$@"

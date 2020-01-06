@@ -1,7 +1,7 @@
 dnl
 dnl  Libmonitor top-level configure.ac.
 dnl
-dnl  Copyright (c) 2019, Rice University.
+dnl  Copyright (c) 2019-2020, Rice University.
 dnl  All rights reserved.
 dnl
 dnl  Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@ dnl  if advised of the possibility of such damage.
 dnl
 
 AC_INIT([libmonitor], [0.x], [hpctoolkit-forum@rice.edu])
-AC_COPYRIGHT([libmonitor is Copyright (c) 2019, Rice University.
+AC_COPYRIGHT([libmonitor is Copyright (c) 2019-2020, Rice University.
 See the file LICENSE for details.])
 
 AC_CONFIG_AUX_DIR([config])

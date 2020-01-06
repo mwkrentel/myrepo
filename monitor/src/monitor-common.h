@@ -1,7 +1,7 @@
 /*
  *  Internal shared declarations.
  *
- *  Copyright (c) 2019, Rice University.
+ *  Copyright (c) 2019-2020, Rice University.
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,9 @@
  *  if advised of the possibility of such damage.
  */
 
+#ifndef _MONITOR_COMMON_H_
+#define _MONITOR_COMMON_H_
+
 #include <dlfcn.h>
 #include <err.h>
 #include <errno.h>
@@ -39,13 +42,24 @@
 #include "monitor-config.h"
 
 /*
- *  Exactly one of MONITOR_PRELOAD and MONITOR_PREINIT must be set.
+ *  There are four build cases and exactly one of these must be
+ *  defined:
+ *    MONITOR_PURE_PRELOAD, MONITOR_GOTCHA_PRELOAD,
+ *    MONITOR_GOTCHA_LINK or MONITOR_STATIC.
  */
-#if defined(MONITOR_PRELOAD) && defined(MONITOR_PREINIT)
-#error cannot define both MONITOR_PRELOAD and MONITOR_PREINIT
+#if (defined(MONITOR_PURE_PRELOAD) && defined(MONITOR_GOTCHA_PRELOAD))     \
+    || (defined(MONITOR_PURE_PRELOAD) && defined(MONITOR_GOTCHA_LINK))     \
+    || (defined(MONITOR_PURE_PRELOAD) && defined(MONITOR_STATIC))          \
+    || (defined(MONITOR_GOTCHA_PRELOAD) && defined(MONITOR_GOTCHA_LINK))   \
+    || (defined(MONITOR_GOTCHA_PRELOAD) && defined(MONITOR_STATIC))        \
+    || (defined(MONITOR_GOTCHA_LINK) && defined(MONITOR_STATIC))
+#error cannot define more than one of: MONITOR_PURE_PRELOAD, \
+MONITOR_GOTCHA_PRELOAD, MONITOR_GOTCHA_LINK or MONITOR_STATIC
 #endif
-#if ! defined(MONITOR_PRELOAD) && ! defined(MONITOR_PREINIT)
-#error must define one of MONITOR_PRELOAD and MONITOR_PREINIT
+#if !defined(MONITOR_PURE_PRELOAD) && !defined(MONITOR_GOTCHA_PRELOAD)     \
+    && !defined(MONITOR_GOTCHA_LINK) && !defined(MONITOR_STATIC)
+#error must define one of: MONITOR_PURE_PRELOAD, MONITOR_GOTCHA_PRELOAD, \
+MONITOR_GOTCHA_LINK or MONITOR_STATIC
 #endif
 
 //----------------------------------------------------------------------
@@ -61,3 +75,5 @@
 	    errx(1, "dlsym(" name ")failed");	\
 	}					\
     }
+
+#endif  // _MONITOR_COMMON_H_

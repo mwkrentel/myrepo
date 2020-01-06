@@ -1,7 +1,7 @@
 /*
  *  Override __libc_start_main() with ld_preload.
  *
- *  Copyright (c) 2019, Rice University.
+ *  Copyright (c) 2019-2020, Rice University.
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -33,13 +33,16 @@
  */
 
 #include <sys/types.h>
-#include <dlfcn.h>
 #include <err.h>
 #include <errno.h>
 #include <stdio.h>
 
+#if defined(MONITOR_PURE_PRELOAD) || defined(MONITOR_GOTCHA_PRELOAD)
+#include <dlfcn.h>
+#endif
+
 #include "monitor-config.h"
-#include "common.h"
+#include "monitor-common.h"
 #include "monitor.h"
 
 /*
@@ -74,7 +77,7 @@ __wrap_main(int argc, char **argv, char **envp  AUXVEC_DECL )
 
     monitor_begin_process_cb();
 
-#if defined(MONITOR_PRELOAD)
+#if defined(MONITOR_PURE_PRELOAD) || defined(MONITOR_GOTCHA_PRELOAD)
     ret = (* real_main) (argc, argv, envp  AUXVEC_ARG );
 #else
     ret = __real_main (argc, argv, envp  AUXVEC_ARG );
@@ -91,7 +94,7 @@ __wrap_main(int argc, char **argv, char **envp  AUXVEC_DECL )
  *  Override __libc_start_main() via LD_PRELOAD.  The signature is
  *  different for powerpc.
  */
-#if defined(MONITOR_PRELOAD)
+#if defined(MONITOR_PURE_PRELOAD) || defined(MONITOR_GOTCHA_PRELOAD)
 
 #ifdef MONITOR_START_MAIN_PPC
 

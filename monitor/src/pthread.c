@@ -1,7 +1,7 @@
 /*
  *  Override pthread_create().
  *
- *  Copyright (c) 2019, Rice University.
+ *  Copyright (c) 2019-2020, Rice University.
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -33,17 +33,21 @@
  */
 
 #include <sys/types.h>
-#include <dlfcn.h>
 #include <err.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 
+#if defined(MONITOR_PURE_PRELOAD) || defined(MONITOR_GOTCHA_PRELOAD)
+#include <dlfcn.h>
+#endif
+#if defined(MONITOR_GOTCHA_PRELOAD) || defined(MONITOR_GOTCHA_LINK)
 #include <gotcha/gotcha.h>
+#endif
 #include <pthread.h>
 
 #include "monitor-config.h"
-#include "common.h"
+#include "monitor-common.h"
 #include "monitor.h"
 
 typedef void * (pthread_start_fcn_t) (void *);
@@ -55,8 +59,15 @@ struct monitor_thread_node {
     void * tn_arg;
 };
 
+#if defined(MONITOR_GOTCHA_PRELOAD) || defined(MONITOR_GOTCHA_LINK)
 static gotcha_wrappee_handle_t  pthread_create_handle;
+#endif
+
+#if defined(MONITOR_STATIC)
+extern pthread_create_fcn_t  __real_pthread_create;
+#else
 static pthread_create_fcn_t  * real_pthread_create;
+#endif
 
 //----------------------------------------------------------------------
 
@@ -84,7 +95,7 @@ monitor_thread_start_routine(void *arg)
 /*
  *  Override pthread_create().
  */
-#ifdef MONITOR_PRELOAD
+#if defined(MONITOR_PURE_PRELOAD) || defined(MONITOR_GOTCHA_PRELOAD)
 int pthread_create
 #else
 int __wrap_pthread_create
@@ -100,11 +111,15 @@ int __wrap_pthread_create
     tn->tn_start_routine = start_routine;
     tn->tn_arg = arg;
 
-#ifdef MONITOR_PRELOAD
+#if defined(MONITOR_PURE_PRELOAD) || defined(MONITOR_GOTCHA_PRELOAD)
     GET_DLSYM_FUNC(real_pthread_create, "pthread_create");
 #endif
 
+#if defined(MONITOR_STATIC)
+    ret = __real_pthread_create (thread, attr, &monitor_thread_start_routine, tn);
+#else
     ret = (* real_pthread_create) (thread, attr, &monitor_thread_start_routine, tn);
+#endif
 
     return ret;
 }
@@ -115,7 +130,7 @@ int __wrap_pthread_create
  *  Preinit constructor to run gotcha-wrap on pthread_create().  This
  *  is run before library init constructors.
  */
-#ifdef MONITOR_PREINIT
+#ifdef MONITOR_GOTCHA_LINK
 
 static gotcha_binding_t thread_bindings [] = {
     { "pthread_create", __wrap_pthread_create, &pthread_create_handle },

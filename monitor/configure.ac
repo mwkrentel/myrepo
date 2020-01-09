@@ -120,6 +120,32 @@ if test $? -ne 0 ; then
 fi
 
 #------------------------------------------------------------
+# GNU atomic ops
+#------------------------------------------------------------
+
+# Test if CC supports GNU atomic ops: __sync_val_compare_and_swap()
+
+AC_MSG_CHECKING([if CC supports GNU atomic ops])
+
+AC_LINK_IFELSE([
+AC_LANG_SOURCE([[
+#include <stdio.h>
+int main(int argc, char **argv)
+{
+    long x = (long) argc;
+    x = __sync_val_compare_and_swap(&x, 2L, 3L);
+    printf("%ld", x);
+    return 0;
+}
+]])], [gnu_atomic_ops=yes], [gnu_atomic_ops=no])
+
+AC_MSG_RESULT([$gnu_atomic_ops])
+
+if test "$gnu_atomic_ops" != yes ; then
+    AC_MSG_ERROR([CC does not support GNU atomic ops: $CC])
+fi
+
+#------------------------------------------------------------
 # Option: --with-gotcha=PATH
 #------------------------------------------------------------
 

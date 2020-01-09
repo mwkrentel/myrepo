@@ -115,6 +115,8 @@ int __wrap_pthread_create
     GET_DLSYM_FUNC(real_pthread_create, "pthread_create");
 #endif
 
+    monitor_try_begin_process();
+
 #if defined(MONITOR_STATIC)
     ret = __real_pthread_create (thread, attr, &monitor_thread_start_routine, tn);
 #else
@@ -129,6 +131,8 @@ int __wrap_pthread_create
 /*
  *  Preinit constructor to run gotcha-wrap on pthread_create().  This
  *  is run before library init constructors.
+ *
+ *  This is too early for the begin_process() callback.
  */
 #ifdef MONITOR_GOTCHA_LINK
 

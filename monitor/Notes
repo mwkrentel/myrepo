@@ -1,0 +1,81 @@
+-----------------------------------
+Notes on new libmonitor and gotcha
+-----------------------------------
+
+FOUR BUILD/RUN CASES
+
+(1) pure preload -- libmonitor-pure-preload.so
+
+Override all functions with LD_PRELOAD, this is what libmonitor does
+now for the dynamic case.
+
+__libc_start_main() -- override with LD_PRELOAD, pass in address of
+our __wrap_main().
+
+First entry: preload override of anything, anywhere in app: in init
+ctor or at __libc_start_main().
+
+--------------------
+
+(2) gotcha hybrid -- libmonitor-preload.so
+
+Override __libc_start_main() and pthread_create() with LD_PRELOAD, use
+gotcha for everything else.
+
+__libc_start_main() -- same as pure preload.
+
+First entry: at __libc_start_main(), or init ctor of pthread_create().
+
+--------------------
+
+(3) gotcha preinit -- libmonitor-link.o
+
+Override main() with --wrap, use preinit_array for gotcha_wrap() of
+pthread_create(), use gotcha for everything else.
+
+main() -- __wrap_main() with --wrap.
+
+First entry: preinit array ctor, but for callback: __wrap_main(), or
+else pthread_create() from init ctor.
+
+--------------------
+
+(4) static -- libmonitor-static.o
+
+Override all functions with --wrap, this is what libmonitor does now
+for the static case.
+
+main() -- same as preinit link case.
+
+First entry: --wrap override of anything, probably at main(), unless
+static app uses init ctors.
+
+------------------------------------------------------------
+
+TODO
+
+2. add atomics for run once and first entry.
+
+4. add example callbacks based on REALTIME interrupts.
+
+5. control callback output via MONITOR_DEBUG.
+
+6. add monitor client config parameters.
+
+7. add pthread pre/post-create callbacks.
+
+8. catch thread exit via cancel, pthread_exit, etc.
+
+9. add fork and exec.
+
+10. unit tests for threads before main.
+
+------------------------------------------------------------
+
+DONE
+
+1. add callback for monitor_at_main().
+
+3. extend monitor_begin_process() to first entry.
+
+

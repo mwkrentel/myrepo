@@ -43,6 +43,7 @@ extern "C" {
  *  Callback functions for the client to override.
  */
 extern void monitor_begin_process_cb(void);
+extern void monitor_at_main_cb(void);
 extern void monitor_end_process_cb(void);
 extern void monitor_begin_thread_cb(void);
 extern void monitor_end_thread_cb(void);

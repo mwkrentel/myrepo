@@ -76,4 +76,8 @@ MONITOR_GOTCHA_LINK or MONITOR_STATIC
 	}					\
     }
 
+//----------------------------------------------------------------------
+
+void monitor_try_begin_process(void);
+
 #endif  // _MONITOR_COMMON_H_

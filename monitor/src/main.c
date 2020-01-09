@@ -68,6 +68,27 @@ extern main_fcn_t  __real_main;
 //----------------------------------------------------------------------
 
 /*
+ *  Deliver the begin_process() callback at the first entry into
+ *  monitor code.  All entry points that might be first should call
+ *  this.
+ */
+void
+monitor_try_begin_process(void)
+{
+    static int begin_process_called = 0;
+
+    // test and test-and-set
+    if (begin_process_called
+	|| __sync_val_compare_and_swap(&begin_process_called, 0, 1)) {
+	return;
+    }
+
+    monitor_begin_process_cb();
+}
+
+//----------------------------------------------------------------------
+
+/*
  *  The stack frame around the application's main().
  */
 int
@@ -75,7 +96,9 @@ __wrap_main(int argc, char **argv, char **envp  AUXVEC_DECL )
 {
     int ret;
 
-    monitor_begin_process_cb();
+    monitor_try_begin_process();
+
+    monitor_at_main_cb();
 
 #if defined(MONITOR_PURE_PRELOAD) || defined(MONITOR_GOTCHA_PRELOAD)
     ret = (* real_main) (argc, argv, envp  AUXVEC_ARG );
@@ -116,6 +139,8 @@ __libc_start_main(int argc, char **argv, char **envp, void *auxp,
     new_stinfo[2] = stinfo[2];
     new_stinfo[3] = stinfo[3];
 
+    monitor_try_begin_process();
+
     int ret = (* real_start_main)
 	(argc, argv, envp, auxp, rtld_fini, new_stinfo, stack_end);
 
@@ -136,6 +161,8 @@ __libc_start_main(main_fcn_t *main, int argc, char **argv, void *init,
     GET_DLSYM_FUNC(real_start_main, "__libc_start_main");
 
     real_main = main;
+
+    monitor_try_begin_process();
 
     int ret = (* real_start_main)
 	(__wrap_main, argc, argv, init, fini, rtld_fini, stack_end);

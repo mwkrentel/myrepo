@@ -43,6 +43,12 @@ monitor_begin_process_cb(void)
 }
 
 void  __attribute__ ((weak))
+monitor_at_main_cb(void)
+{
+    printf("---> monitor: at main\n");
+}
+
+void  __attribute__ ((weak))
 monitor_end_process_cb(void)
 {
     printf("---> monitor: end process\n");

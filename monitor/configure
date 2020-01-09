@@ -13324,6 +13324,44 @@ $as_echo "$as_me: WARNING: not using the GNU C compiler" >&2;}
 fi
 
 #------------------------------------------------------------
+# GNU atomic ops
+#------------------------------------------------------------
+
+# Test if CC supports GNU atomic ops: __sync_val_compare_and_swap()
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking if CC supports GNU atomic ops" >&5
+$as_echo_n "checking if CC supports GNU atomic ops... " >&6; }
+
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+
+#include <stdio.h>
+int main(int argc, char **argv)
+{
+    long x = (long) argc;
+    x = __sync_val_compare_and_swap(&x, 2L, 3L);
+    printf("%ld", x);
+    return 0;
+}
+
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  gnu_atomic_ops=yes
+else
+  gnu_atomic_ops=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gnu_atomic_ops" >&5
+$as_echo "$gnu_atomic_ops" >&6; }
+
+if test "$gnu_atomic_ops" != yes ; then
+    as_fn_error $? "CC does not support GNU atomic ops: $CC" "$LINENO" 5
+fi
+
+#------------------------------------------------------------
 # Option: --with-gotcha=PATH
 #------------------------------------------------------------
 

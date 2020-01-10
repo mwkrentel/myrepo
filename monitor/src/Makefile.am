@@ -44,6 +44,8 @@ bin_SCRIPTS = $(MONITOR_SCRIPT_FILES)
 
 CLEANFILES = $(MONITOR_SCRIPT_FILES)
 
+include_HEADERS = monitor.h
+
 lib_LTLIBRARIES = libmonitor-preload.la libmonitor-pure-preload.la
 
 libmonitor_preload_la_SOURCES = $(MONITOR_SRC_FILES)

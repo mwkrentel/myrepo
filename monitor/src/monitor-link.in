@@ -97,7 +97,6 @@ do
 
 	-i | -insert | --insert )
 	    test "x$2" != x || die "missing argument: $*"
-	    test -f "$2" || die "unable to find: $2"
 	    insert_files="${insert_files} $2"
 	    shift ; shift
 	    ;;

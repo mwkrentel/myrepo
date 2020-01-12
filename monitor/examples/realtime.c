@@ -29,7 +29,7 @@
  *  or otherwise) arising in any way out of the use of this software, even
  *  if advised of the possibility of such damage.
  *
- *  Mark W. Krentel, Rice University
+ *  Mark W. Krentel
  *  January 2020
  *
  *  ----------------------------------------------------------------------
@@ -44,17 +44,18 @@
  *  Link with -lrt and -lpthread.
  *
  *  Usage:  export EVENT='name@period'
+ *
  *   where name is 'real' or 'cpu', and period is time in
  *   micro-seconds.
  *
  *  ----------------------------------------------------------------------
  *
  *  Todo:
- *
- *   1. add support for threads.
- *
  *   2. record ip addrs, so in the event of a crash, can see where
  *   recent interrupts happened.
+ *
+ *   3. support many threads, threads that end before the process,
+ *   etc.
  */
 
 #include <sys/types.h>
@@ -69,6 +70,8 @@
 #include <time.h>
 #include <unistd.h>
 
+#include <pthread.h>
+
 #define REALTIME_NAME  "REALTIME"
 #define CPUTIME_NAME   "CPUTIME"
 #define REALTIME_CLOCK_TYPE  CLOCK_REALTIME
@@ -77,52 +80,62 @@
 #define PROF_SIGNAL    (SIGRTMIN + 4)
 
 #define DEFAULT_PERIOD  4000
-#define MILLION  1000000
+#define MAX_THREADS   550
+#define MILLION   1000000
+
+#define MAGIC  0x004ea1004ea1
+
+struct thread_info {
+    struct timeval  start;
+    struct sigevent sigev;
+    timer_t  timerid;
+    long  magic;
+    long  count;
+};
+
+static struct thread_info thread_array[MAX_THREADS];
+
+static long next_thread = 1;
 
 static struct itimerspec itspec_start;
 static struct itimerspec itspec_stop;
 
-static timer_t  timerid;
-static struct sigevent sigev;
-static struct timeval  start;
-static struct timeval  end;
-
 static clockid_t clock_type;
 static char *clock_name;
-static long period;
+static long  period;
 
-static long count = 0;
-static long before_main = 0;
+static pthread_key_t key;
+
+static int at_end_of_process = 0;
 
 //----------------------------------------------------------------------
 
 static void
-create_timer(void)
+create_timer(struct thread_info *tid)
 {
-    memset(&sigev, 0, sizeof(sigev));
+    memset(&tid->sigev, 0, sizeof(tid->sigev));
+    tid->sigev.sigev_notify = NOTIFY_METHOD;
+    tid->sigev.sigev_signo = PROF_SIGNAL;
+    tid->sigev.sigev_value.sival_ptr = &tid->timerid;
+    tid->sigev._sigev_un._tid = syscall(SYS_gettid);
 
-    sigev.sigev_notify = NOTIFY_METHOD;
-    sigev.sigev_signo = PROF_SIGNAL;
-    sigev.sigev_value.sival_ptr = &timerid;
-    sigev._sigev_un._tid = syscall(SYS_gettid);
-
-    if (timer_create(clock_type, &sigev, &timerid) != 0) {
+    if (timer_create(clock_type, &tid->sigev, &tid->timerid) != 0) {
 	err(1, "timer create failed");
     }
 }
 
 static void
-start_timer(void)
+start_timer(struct thread_info *tid)
 {
-    if (timer_settime(timerid, 0, &itspec_start, NULL) != 0) {
+    if (timer_settime(tid->timerid, 0, &itspec_start, NULL) != 0) {
 	err(1, "timer start failed");
     }
 }
 
 static void
-stop_timer(void)
+stop_timer(struct thread_info *tid)
 {
-    if (timer_settime(timerid, 0, &itspec_stop, NULL) != 0) {
+    if (timer_settime(tid->timerid, 0, &itspec_stop, NULL) != 0) {
 	err(1, "timer stop failed");
     }
 }
@@ -132,8 +145,56 @@ stop_timer(void)
 void
 my_handler(int sig, siginfo_t *info, void *context)
 {
-    count++;
-    start_timer();
+    if (at_end_of_process) {
+	return;
+    }
+
+    struct thread_info *tid = pthread_getspecific(key);
+
+    if (tid == NULL || tid->magic != MAGIC) {
+	errx(1, "pthread_getspecific failed");
+    }
+
+    tid->count++;
+    start_timer(tid);
+}
+
+//----------------------------------------------------------------------
+
+static void
+print_results(void)
+{
+    struct timeval now;
+    long total = 0;
+    double diff;
+
+    gettimeofday(&now, NULL);
+
+    if (period < 1) { period = 1; }
+    if (next_thread > MAX_THREADS) { next_thread = MAX_THREADS; }
+
+    printf("event: %s   period: %ld usec   rate: %.1f per sec\n",
+	   clock_name, period, ((double) MILLION) / period);
+
+    for (int i = 0; i < next_thread; i++) {
+	diff = (now.tv_sec - thread_array[i].start.tv_sec)
+	    + ((double) (now.tv_usec - thread_array[i].start.tv_usec)) / MILLION;
+
+	if (diff < 0.001) { diff = 0.001; }
+
+	printf("tid: %3d   time: %.3f sec   count: %ld   rate: %.1f per sec\n",
+	       i, diff, thread_array[i].count, thread_array[i].count / diff);
+
+	total += thread_array[i].count;
+    }
+
+    diff = (now.tv_sec - thread_array[0].start.tv_sec)
+	+ ((double) (now.tv_usec - thread_array[0].start.tv_usec)) / MILLION;
+
+    if (diff < 0.001) { diff = 0.001; }
+
+    printf("time: %.3f sec   total: %ld   rate: %.1f per sec\n",
+	   diff, total, total / diff);
 }
 
 //----------------------------------------------------------------------
@@ -159,7 +220,7 @@ init_profile(void)
 	    clock_name = CPUTIME_NAME;
 	}
 	else {
-	    errx(1, "EVENT does not specify 'real' or 'cpu'");
+	    warnx("EVENT does not specify 'real' or 'cpu'");
 	}
 
 	char *p = strchr(str, '@');
@@ -186,23 +247,33 @@ init_profile(void)
     if (sigaction(PROF_SIGNAL, &act, NULL) != 0) {
         err(1, "sigaction failed");
     }
+
+    if (pthread_key_create(&key, NULL) != 0) {
+	err(1, "pthread_key_create failed");
+    }
 }
 
 //----------------------------------------------------------------------
 
 static void
-print_results(void)
+mk_thread_info(long tnum)
 {
-    double diff = (end.tv_sec - start.tv_sec)
-	+ ((double) (end.tv_usec - start.tv_usec)) / MILLION;
+    if (tnum < 0 || tnum >= MAX_THREADS) {
+	errx(1, "thread num out of range: %ld", tnum);
+    }
 
-    if (diff < 0.001) { diff = 0.001; }
-    if (period < 1) { period = 1; }
+    struct thread_info *tid = &thread_array[tnum];
 
-    printf("event: %s   period: %ld usec   rate: %.1f per sec\n"
-	   "time: %.3f sec   before main: %ld   after: %ld   rate: %.1f per sec\n",
-	   clock_name, period, ((double) MILLION) / period,
-	   diff, before_main, count - before_main, count / diff);
+    memset(tid, 0, sizeof(*tid));
+    tid->magic = MAGIC;
+    tid->count = 0;
+    gettimeofday(&tid->start, NULL);
+
+    create_timer(tid);
+
+    if (pthread_setspecific(key, tid) != 0) {
+	err(1, "pthread_setspecific failed");
+    }
 }
 
 //----------------------------------------------------------------------
@@ -214,33 +285,48 @@ monitor_begin_process_cb(void)
 
     printf("---> begin process  %s at %ld\n", clock_name, period);
 
-    create_timer();
-    gettimeofday(&start, NULL);
-    start_timer();
+    mk_thread_info(0);
+    start_timer(&thread_array[0]);
 }
 
 void
 monitor_at_main_cb(void)
 {
-    before_main = count;
 }
 
 void
 monitor_end_process_cb(void)
 {
+    at_end_of_process = 1;
+    stop_timer(&thread_array[0]);
+
     printf("\n---> end process\n");
 
-    stop_timer();
-    gettimeofday(&end, NULL);
     print_results();
 }
 
 void
 monitor_begin_thread_cb(void)
 {
+    long tnum = __sync_fetch_and_add(&next_thread, 1);
+
+    if (tnum < 0 || tnum >= MAX_THREADS) {
+	warnx("out of threads: %ld", tnum);
+	return;
+    }
+
+    mk_thread_info(tnum);
+    start_timer(&thread_array[tnum]);
 }
 
 void
 monitor_end_thread_cb(void)
 {
+    struct thread_info *tid = pthread_getspecific(key);
+
+    if (tid == NULL || tid->magic != MAGIC) {
+	errx(1, "pthread_getspecific failed");
+    }
+
+    stop_timer(tid);
 }

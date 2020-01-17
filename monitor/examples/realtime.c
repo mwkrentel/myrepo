@@ -36,27 +36,36 @@
  *
  *  Use libmonitor to attach to a program, turn on REALTIME or CPUTIME
  *  interrupts per process and thread, and report the elapsed time and
- *  number of interrupts.
+ *  number of interrupts.  If the program segfaults, dump the last few
+ *  interrupts per thread.
  *
  *  This tests if a high rate of interrupts causes problems for an
  *  application.
  *
  *  Link with -lrt and -lpthread.
  *
- *  Usage:  export EVENT='name@period'
+ *  Usage:
+ *    export EVENT='name@period'
+ *    monitor-run -i librealtime.so app ...
  *
- *   where name is 'real' or 'cpu', and period is time in
- *   micro-seconds.
+ *  where name is 'real' or 'cpu', and period is time in
+ *  micro-seconds.
  *
  *  ----------------------------------------------------------------------
  *
  *  Todo:
- *   2. record ip addrs, so in the event of a crash, can see where
- *   recent interrupts happened.
+ *    3. support many threads, threads that end before the process,
+ *    etc.
  *
- *   3. support many threads, threads that end before the process,
- *   etc.
+ *    4. drain the pending signals at end-of-thread time.
+ *
+ *    5. add alarm in case of deadlock.
+ *
+ *    6. for pc addrs in .so library, compute file name, load address
+ *    and offset.
  */
+
+#define _GNU_SOURCE
 
 #include <sys/types.h>
 #include <sys/syscall.h>
@@ -71,6 +80,9 @@
 #include <unistd.h>
 
 #include <pthread.h>
+#include <ucontext.h>
+
+#include "monitor.h"
 
 #define REALTIME_NAME  "REALTIME"
 #define CPUTIME_NAME   "CPUTIME"
@@ -79,18 +91,27 @@
 #define NOTIFY_METHOD   SIGEV_THREAD_ID
 #define PROF_SIGNAL    (SIGRTMIN + 4)
 
+#define MAX_THREADS  550
+#define NUM_SAMPLES   40
+
 #define DEFAULT_PERIOD  4000
-#define MAX_THREADS   550
 #define MILLION   1000000
 
 #define MAGIC  0x004ea1004ea1
 
 struct thread_info {
-    struct timeval  start;
+    long  magic;
+    long  tnum;
+    long  count;
     struct sigevent sigev;
     timer_t  timerid;
-    long  magic;
-    long  count;
+    struct timeval  start;
+    struct sample_info * sinfo;
+};
+
+struct sample_info {
+    void *pc;
+    long  usec;
 };
 
 static struct thread_info thread_array[MAX_THREADS];
@@ -106,8 +127,16 @@ static long  period;
 
 static pthread_key_t key;
 
+static struct timeval proc_start;
+
 static int at_end_of_process = 0;
 
+static int my_pid = 0;
+
+static void dump_samples(void);
+
+//----------------------------------------------------------------------
+//  POSIX timer functions
 //----------------------------------------------------------------------
 
 static void
@@ -141,8 +170,53 @@ stop_timer(struct thread_info *tid)
 }
 
 //----------------------------------------------------------------------
+//  Interrupt and analysis functions
+//----------------------------------------------------------------------
 
-void
+static void
+do_sample(struct thread_info *tid, void *context)
+{
+    struct ucontext *ucontext = (struct ucontext *) context;
+    mcontext_t *mcontext = &(ucontext->uc_mcontext);
+    struct timeval now;
+    void *pc = NULL;
+
+    gettimeofday(&now, NULL);
+
+    long usec = MILLION * (now.tv_sec - proc_start.tv_sec)
+	+ (now.tv_usec - proc_start.tv_usec);
+
+#if defined(__x86_64__)
+#ifndef REG_RIP
+#define REG_RIP  16
+#endif
+    pc = (void *) mcontext->gregs[REG_RIP];
+
+#elif defined(__powerpc64__)
+#ifndef PPC_REG_PC
+#define PPC_REG_PC  32
+#endif
+    pc = (void *) mcontext->gp_regs[PPC_REG_PC];
+
+#elif defined(__aarch64__)
+    pc = (void *) mcontext->pc;
+
+#else
+#error architecture not supported
+#endif
+
+    long slot = tid->count % NUM_SAMPLES;
+    tid->sinfo[slot].pc = pc;
+    tid->sinfo[slot].usec = usec;
+
+    tid->count++;
+}
+
+//----------------------------------------------------------------------
+//  Signal handler functions
+//----------------------------------------------------------------------
+
+static void
 my_handler(int sig, siginfo_t *info, void *context)
 {
     if (at_end_of_process) {
@@ -151,18 +225,66 @@ my_handler(int sig, siginfo_t *info, void *context)
 
     struct thread_info *tid = pthread_getspecific(key);
 
-    if (tid == NULL || tid->magic != MAGIC) {
-	errx(1, "pthread_getspecific failed");
+    if (tid == NULL) {
+	//
+	// probably a stray "drain the swamp" signal at thread tear
+	// down
+	//
+	warnx("pthread_getspecific returns NULL");
+	return;
+    }
+    else if (tid->magic != MAGIC) {
+	//
+	// internal corruption, should not happen
+	//
+	at_end_of_process = 1;
+	warnx("pthread_getspecific bad magic");
+	dump_samples();
+	abort();
     }
 
-    tid->count++;
+    do_sample(tid, context);
     start_timer(tid);
 }
 
+static void
+segv_handler(int sig, siginfo_t *info, void *context)
+{
+    struct sigaction act;
+    sigset_t set;
+
+    at_end_of_process = 1;
+
+    // reset handler to default
+    memset(&act, 0, sizeof(act));
+    sigemptyset(&act.sa_mask);
+    act.sa_handler = SIG_DFL;
+    if (sigaction(SIGSEGV, &act, NULL) != 0) {
+        err(1, "reset sigaction failed");
+    }
+    if (sigaction(SIGBUS, &act, NULL) != 0) {
+        err(1, "reset sigaction failed");
+    }
+
+    // unblock segfaults
+    sigemptyset(&set);
+    sigaddset(&set, SIGSEGV);
+    sigaddset(&set, SIGBUS);
+    pthread_sigmask(SIG_UNBLOCK, &set, NULL);
+
+    dump_samples();
+    abort();
+}
+
+//----------------------------------------------------------------------
+//  Printing functions
 //----------------------------------------------------------------------
 
+/*
+ *  Normal summary on success.
+ */
 static void
-print_results(void)
+print_summary(void)
 {
     struct timeval now;
     long total = 0;
@@ -199,11 +321,50 @@ print_results(void)
 
 //----------------------------------------------------------------------
 
+/*
+ *  On error, dump recent interrupts.
+ */
 static void
-init_profile(void)
+dump_samples(void)
 {
-    struct sigaction act;
+    struct timeval now;
+    gettimeofday(&now, NULL);
 
+    for (int i = 0; i < next_thread; i++) {
+	struct thread_info *tid = &thread_array[i];
+
+	double diff = (now.tv_sec - tid->start.tv_sec)
+	    + ((double) (now.tv_usec - tid->start.tv_usec)) / MILLION;
+
+	printf("\npid: %6d    tid: %4d    ----------------------------------------\n"
+	       "pid: %6d    tid: %4d    time: %.3f sec    count: %ld\n",
+	       my_pid, i, my_pid, i, diff, tid->count);
+
+	long slot = (tid->count < NUM_SAMPLES) ? 0 : (tid->count % NUM_SAMPLES);
+	long num =  (tid->count < NUM_SAMPLES) ? tid->count : NUM_SAMPLES;
+
+	for (long j = 0; j < num; j++) {
+	    long sec = tid->sinfo[slot].usec / MILLION;
+	    long usec = tid->sinfo[slot].usec % MILLION;
+
+	    printf("pid: %6d    tid: %4d    usec: %4ld.%06ld    %p\n",
+		   my_pid, i, sec, usec, tid->sinfo[slot].pc);
+
+	    slot = (slot + 1) % NUM_SAMPLES;
+	}
+    }
+}
+
+//----------------------------------------------------------------------
+//  Initialization functions
+//----------------------------------------------------------------------
+
+static void
+init_process(void)
+{
+    struct sigaction act, segv_act;
+
+    // default clock
     clock_type = REALTIME_CLOCK_TYPE;
     clock_name = REALTIME_NAME;
     period = DEFAULT_PERIOD;
@@ -240,6 +401,7 @@ init_profile(void)
 
     memset(&itspec_stop, 0, sizeof(itspec_stop));
 
+    // profiling handler
     memset(&act, 0, sizeof(act));
     sigemptyset(&act.sa_mask);
     act.sa_sigaction = my_handler;
@@ -248,9 +410,25 @@ init_profile(void)
         err(1, "sigaction failed");
     }
 
+    // segfault handler
+    memset(&segv_act, 0, sizeof(segv_act));
+    sigemptyset(&segv_act.sa_mask);
+    segv_act.sa_sigaction = segv_handler;
+    segv_act.sa_flags = SA_SIGINFO;
+    if (sigaction(SIGSEGV, &segv_act, NULL) != 0) {
+        err(1, "segv sigaction failed");
+    }
+    if (sigaction(SIGBUS, &segv_act, NULL) != 0) {
+        err(1, "segv sigaction failed");
+    }
+
     if (pthread_key_create(&key, NULL) != 0) {
 	err(1, "pthread_key_create failed");
     }
+
+    my_pid = getpid();
+
+    gettimeofday(&proc_start, NULL);
 }
 
 //----------------------------------------------------------------------
@@ -266,8 +444,14 @@ mk_thread_info(long tnum)
 
     memset(tid, 0, sizeof(*tid));
     tid->magic = MAGIC;
+    tid->tnum = tnum;
     tid->count = 0;
     gettimeofday(&tid->start, NULL);
+
+    tid->sinfo = (struct sample_info *) malloc(NUM_SAMPLES * sizeof(struct sample_info));
+    if (tid->sinfo == NULL) {
+	err(1, "malloc for sample info array failed");
+    }
 
     create_timer(tid);
 
@@ -277,13 +461,16 @@ mk_thread_info(long tnum)
 }
 
 //----------------------------------------------------------------------
+//  Monitor callback functions
+//----------------------------------------------------------------------
 
 void
 monitor_begin_process_cb(void)
 {
-    init_profile();
+    init_process();
 
-    printf("---> begin process  %s at %ld\n", clock_name, period);
+    printf("---> begin process  (pid %d)  %s at %ld\n",
+	   my_pid, clock_name, period);
 
     mk_thread_info(0);
     start_timer(&thread_array[0]);
@@ -300,9 +487,9 @@ monitor_end_process_cb(void)
     at_end_of_process = 1;
     stop_timer(&thread_array[0]);
 
-    printf("\n---> end process\n");
+    printf("\n---> end process  (pid %d)\n", my_pid);
 
-    print_results();
+    print_summary();
 }
 
 void

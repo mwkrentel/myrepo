@@ -10,13 +10,15 @@ CFLAGS = -g -O
 
 LIBS = libreal.so real.o
 
+INCL = -I../src
+
 all: $(LIBS)
 
 libreal.so: realtime.c
-	$(CC) $(CFLAGS) -fPIC -shared $< -o $@ -lrt -lpthread
+	$(CC) $(CFLAGS) -fPIC -shared $(INCL) $< -o $@ -lrt -lpthread
 
 real.o: realtime.c
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) -c $(CFLAGS) $(INCL) $< -o $@
 
 clean:
 	rm -f $(LIBS) *.o *.so

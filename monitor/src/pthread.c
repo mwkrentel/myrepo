@@ -72,6 +72,18 @@ static pthread_create_fcn_t  * real_pthread_create;
 //----------------------------------------------------------------------
 
 /*
+ *  Pthread cancel function.  When a thread is canceled, this is
+ *  called and the start routine does not return.
+ */
+static void
+monitor_thread_cleanup_routine(void *arg)
+{
+    monitor_end_thread_cb();
+}
+
+//----------------------------------------------------------------------
+
+/*
  *  This is the start routine that we pass to the real
  *  pthread_create(), where the newly created thread begins.
  */
@@ -83,7 +95,11 @@ monitor_thread_start_routine(void *arg)
 
     monitor_begin_thread_cb();
 
+    pthread_cleanup_push(monitor_thread_cleanup_routine, NULL);
+
     ret = (tn->tn_start_routine) (tn->tn_arg);
+
+    pthread_cleanup_pop(0);
 
     monitor_end_thread_cb();
 

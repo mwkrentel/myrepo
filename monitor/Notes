@@ -56,15 +56,11 @@ TODO
 
 2. add atomics for run once and first entry.
 
-4. add example callbacks based on REALTIME interrupts.
-
 5. control callback output via MONITOR_DEBUG.
 
 6. add monitor client config parameters.
 
 7. add pthread pre/post-create callbacks.
-
-8. catch thread exit via cancel, pthread_exit, etc.
 
 9. add fork and exec.
 
@@ -78,4 +74,7 @@ DONE
 
 3. extend monitor_begin_process() to first entry.
 
+4. add example callbacks based on REALTIME interrupts.
+
+8. catch thread exit via cancel, pthread_exit, etc.
 

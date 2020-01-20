@@ -57,8 +57,6 @@
  *    3. support many threads, threads that end before the process,
  *    etc.
  *
- *    4. drain the pending signals at end-of-thread time.
- *
  *    5. add alarm in case of deadlock.
  *
  *    6. for pc addrs in .so library, compute file name, load address
@@ -166,6 +164,14 @@ stop_timer(struct thread_info *tid)
 {
     if (timer_settime(tid->timerid, 0, &itspec_stop, NULL) != 0) {
 	err(1, "timer stop failed");
+    }
+}
+
+static void
+delete_timer(struct thread_info *tid)
+{
+    if (timer_delete(tid->timerid) != 0) {
+	warn("timer delete failed");
     }
 }
 
@@ -464,6 +470,29 @@ mk_thread_info(long tnum)
 //  Monitor callback functions
 //----------------------------------------------------------------------
 
+/*
+ *  Drain the queue of any leftover signals and block the profiling
+ *  signal at end of process or thread time.  There's a risk that a
+ *  leftover signal might run in the handler after thread specific
+ *  data has gone away.
+ */
+static void
+drain_signal_queue(void)
+{
+    struct timespec tspec;
+    sigset_t set;
+
+    sigemptyset(&set);
+    sigaddset(&set, PROF_SIGNAL);
+    tspec.tv_sec = 0;
+    tspec.tv_nsec = 10;
+
+    while (sigtimedwait(&set, NULL, &tspec) > 0)
+	;
+
+    pthread_sigmask(SIG_BLOCK, &set, NULL);
+}
+
 void
 monitor_begin_process_cb(void)
 {
@@ -485,7 +514,10 @@ void
 monitor_end_process_cb(void)
 {
     at_end_of_process = 1;
+
     stop_timer(&thread_array[0]);
+    delete_timer(&thread_array[0]);
+    drain_signal_queue();
 
     printf("\n---> end process  (pid %d)\n", my_pid);
 
@@ -516,4 +548,6 @@ monitor_end_thread_cb(void)
     }
 
     stop_timer(tid);
+    delete_timer(tid);
+    drain_signal_queue();
 }

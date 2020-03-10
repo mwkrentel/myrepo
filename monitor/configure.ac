@@ -203,6 +203,31 @@ AC_SUBST([GOTCHA_LFLAGS])
 AC_SUBST([GOTCHA_LIBDIR])
 
 #------------------------------------------------------------
+# Option: --enable-dlfcn=yes
+#------------------------------------------------------------
+
+# Note: autoconf uses 'enable_dlopen', so we use dlfcn.
+
+AC_ARG_ENABLE([dlfcn],
+    [AS_HELP_STRING([--enable-dlfcn],
+	[include support for dlopen and friends (default=yes)])],
+    [],
+    [enable_dlfcn=yes])
+
+AC_MSG_NOTICE([enable dlopen: $enable_dlfcn])
+
+case "$enable_dlfcn" in
+     yes | no ) ;;
+     * ) AC_MSG_ERROR([invalid value for enable dlfcn: $enable_dlfcn]) ;;
+esac
+
+if test "$enable_dlfcn" = yes ; then
+    AC_DEFINE([MONITOR_USE_DLOPEN], [1], [Include support for dlopen.])
+fi
+
+AM_CONDITIONAL([MONITOR_COND_USE_DLOPEN], [test x$enable_dlfcn = xyes])
+
+#------------------------------------------------------------
 # Option: --enable-start-main=TYPE
 #------------------------------------------------------------
 

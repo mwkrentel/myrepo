@@ -638,6 +638,8 @@ ac_subst_vars='am__EXEEXT_FALSE
 am__EXEEXT_TRUE
 LTLIBOBJS
 LIBOBJS
+MONITOR_COND_USE_DLOPEN_FALSE
+MONITOR_COND_USE_DLOPEN_TRUE
 GOTCHA_LIBDIR
 GOTCHA_LFLAGS
 GOTCHA_IFLAGS
@@ -773,6 +775,7 @@ with_gnu_ld
 with_sysroot
 enable_libtool_lock
 with_gotcha
+enable_dlfcn
 enable_start_main
 '
       ac_precious_vars='build_alias
@@ -1417,6 +1420,7 @@ Optional Features:
   --enable-fast-install[=PKGS]
                           optimize for fast installation [default=yes]
   --disable-libtool-lock  avoid locking (might break parallel builds)
+  --enable-dlfcn          include support for dlopen and friends (default=yes)
   --enable-start-main=TYPE
                           type of __libc_start_main() function (x86, ppc)
 
@@ -13423,6 +13427,43 @@ fi
 
 
 #------------------------------------------------------------
+# Option: --enable-dlfcn=yes
+#------------------------------------------------------------
+
+# Note: autoconf uses 'enable_dlopen', so we use dlfcn.
+
+# Check whether --enable-dlfcn was given.
+if test "${enable_dlfcn+set}" = set; then :
+  enableval=$enable_dlfcn;
+else
+  enable_dlfcn=yes
+fi
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: enable dlopen: $enable_dlfcn" >&5
+$as_echo "$as_me: enable dlopen: $enable_dlfcn" >&6;}
+
+case "$enable_dlfcn" in
+     yes | no ) ;;
+     * ) as_fn_error $? "invalid value for enable dlfcn: $enable_dlfcn" "$LINENO" 5 ;;
+esac
+
+if test "$enable_dlfcn" = yes ; then
+
+$as_echo "#define MONITOR_USE_DLOPEN 1" >>confdefs.h
+
+fi
+
+ if test x$enable_dlfcn = xyes; then
+  MONITOR_COND_USE_DLOPEN_TRUE=
+  MONITOR_COND_USE_DLOPEN_FALSE='#'
+else
+  MONITOR_COND_USE_DLOPEN_TRUE='#'
+  MONITOR_COND_USE_DLOPEN_FALSE=
+fi
+
+
+#------------------------------------------------------------
 # Option: --enable-start-main=TYPE
 #------------------------------------------------------------
 
@@ -13599,6 +13640,10 @@ Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${am__fastdepCC_TRUE}" && test -z "${am__fastdepCC_FALSE}"; then
   as_fn_error $? "conditional \"am__fastdepCC\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${MONITOR_COND_USE_DLOPEN_TRUE}" && test -z "${MONITOR_COND_USE_DLOPEN_FALSE}"; then
+  as_fn_error $? "conditional \"MONITOR_COND_USE_DLOPEN\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 

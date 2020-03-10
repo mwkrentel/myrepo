@@ -48,6 +48,11 @@ extern void monitor_end_process_cb(void);
 extern void monitor_begin_thread_cb(void);
 extern void monitor_end_thread_cb(void);
 
+extern void * monitor_pre_dlopen_cb(const char *, int);
+extern void monitor_post_dlopen_cb(void *, void *);
+extern void * monitor_pre_dlclose_cb(void *);
+extern void monitor_post_dlclose_cb(void *, void *, int);
+
 #ifdef __cplusplus
 }
 #endif

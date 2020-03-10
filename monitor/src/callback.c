@@ -36,6 +36,8 @@
 
 #include "monitor.h"
 
+//----------------------------------------------------------------------
+
 void  __attribute__ ((weak))
 monitor_begin_process_cb(void)
 {
@@ -64,4 +66,32 @@ void  __attribute__ ((weak))
 monitor_end_thread_cb(void)
 {
     printf("---> monitor: end thread\n");
+}
+
+//----------------------------------------------------------------------
+
+void * __attribute__ ((weak))
+monitor_pre_dlopen_cb(const char *name, int flags)
+{
+    printf("---> monitor: pre-dlopen (%s, %d)\n", name, flags);
+    return NULL;
+}
+
+void  __attribute__ ((weak))
+monitor_post_dlopen_cb(void *data, void * handle)
+{
+    printf("---> monitor: post-dlopen: %p\n", handle);
+}
+
+void * __attribute__ ((weak))
+monitor_pre_dlclose_cb(void * handle)
+{
+    printf("---> monitor: pre-dlclose (%p)\n", handle);
+    return NULL;
+}
+
+void  __attribute__ ((weak))
+monitor_post_dlclose_cb(void *data, void * handle, int ret)
+{
+    printf("---> monitor: post-dlclose: %p  ret: %d\n", handle, ret);
 }

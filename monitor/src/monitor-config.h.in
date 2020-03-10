@@ -36,6 +36,9 @@
 /* libc start main type is ppc. */
 #undef MONITOR_START_MAIN_PPC
 
+/* Include support for dlopen. */
+#undef MONITOR_USE_DLOPEN
+
 /* Define to 1 if your C compiler doesn't accept -c and -o together. */
 #undef NO_MINUS_C_MINUS_O
 

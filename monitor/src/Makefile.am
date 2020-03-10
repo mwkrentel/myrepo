@@ -67,6 +67,10 @@ libmonitor_link_o_CPPFLAGS = -DMONITOR_GOTCHA_LINK $(GOTCHA_IFLAGS)
 libmonitor_static_o_SOURCES = $(MONITOR_SRC_FILES)
 libmonitor_static_o_CPPFLAGS = -DMONITOR_STATIC
 
+if MONITOR_COND_USE_DLOPEN
+libmonitor_pure_preload_la_SOURCES += dlopen.c
+endif
+
 install-exec-hook:
 	$(INSTALL) libmonitor-link.o $(DESTDIR)$(libdir)
 	$(INSTALL) libmonitor-static.o $(DESTDIR)$(libdir)

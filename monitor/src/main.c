@@ -96,6 +96,10 @@ __wrap_main(int argc, char **argv, char **envp  AUXVEC_DECL )
 {
     int ret;
 
+#if defined(MONITOR_GOTCHA_LINK)
+    monitor_gotcha_init();
+#endif
+
     monitor_try_begin_process();
 
     monitor_at_main_cb();
@@ -139,6 +143,10 @@ __libc_start_main(int argc, char **argv, char **envp, void *auxp,
     new_stinfo[2] = stinfo[2];
     new_stinfo[3] = stinfo[3];
 
+#if defined(MONITOR_GOTCHA_PRELOAD)
+    monitor_gotcha_init();
+#endif
+
     monitor_try_begin_process();
 
     int ret = (* real_start_main)
@@ -161,6 +169,10 @@ __libc_start_main(main_fcn_t *main, int argc, char **argv, void *init,
     GET_DLSYM_FUNC(real_start_main, "__libc_start_main");
 
     real_main = main;
+
+#if defined(MONITOR_GOTCHA_PRELOAD)
+    monitor_gotcha_init();
+#endif
 
     monitor_try_begin_process();
 

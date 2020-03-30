@@ -30,6 +30,10 @@
  *  whether in contract, strict liability, or tort (including negligence
  *  or otherwise) arising in any way out of the use of this software, even
  *  if advised of the possibility of such damage.
+ *
+ *  ----------------------------------------------------------------------
+ *
+ *  This file is not used in the static case.
  */
 
 #define _GNU_SOURCE
@@ -40,7 +44,6 @@
 #include <stdio.h>
 
 #include <dlfcn.h>
-
 #if defined(MONITOR_GOTCHA_PRELOAD) || defined(MONITOR_GOTCHA_LINK)
 #include <gotcha/gotcha.h>
 #endif
@@ -54,51 +57,90 @@ typedef int dlclose_fcn_t (void *);
 
 //----------------------------------------------------------------------
 
-/*
- * Initialization for the pure preload case.  We enter this code from
- * a preload override, regardless of thread.
- *
- * At the first override, use dlsym(RTLD_NEXT) to get the real
- * versions.
- */
 #if defined(MONITOR_PURE_PRELOAD)
 
+/*
+ *  Initialization for the pure preload case.  We enter this code from
+ *  a preload override, regardless of thread.
+ *
+ *  At the first override, use dlsym(RTLD_NEXT) to get the real
+ *  versions.
+ */
+
+static volatile int dlopen_init_start = 0;
 static volatile int dlopen_init_done = 0;
 
 static dlopen_fcn_t  * real_dlopen = NULL;
 static dlclose_fcn_t * real_dlclose = NULL;
 
 static void
-monitor_init_dlopen(void)
+monitor_preload_init_dlopen(void)
 {
-    void *func = NULL;
-
     if (dlopen_init_done) {
 	return;
     }
 
-    if (real_dlopen == NULL) {
-	GET_DLSYM_FUNC(func, "dlopen");
-	__sync_val_compare_and_swap(&real_dlopen, NULL, func);
-    }
+    if (__sync_bool_compare_and_swap(&dlopen_init_start, 0, 1))
+    {
+	GET_DLSYM_FUNC(real_dlopen, "dlopen");
+	GET_DLSYM_FUNC(real_dlclose, "dlclose");
 
-    func = NULL;
-    if (real_dlclose == NULL) {
-	GET_DLSYM_FUNC(func, "dlclose");
-	__sync_val_compare_and_swap(&real_dlclose, NULL, func);
-    }
+	__sync_synchronize();
 
-    dlopen_init_done = 1;
+	dlopen_init_done = 1;
+    }
+    else {
+	while (! dlopen_init_done)
+	    ;
+    }
 }
 #endif
 
 //----------------------------------------------------------------------
 
-void *
-dlopen(const char * name, int flags)
+#if defined(MONITOR_GOTCHA_ANY)
+
+/*
+ *  Initialization for the gotcha preload and gotcha link cases.
+ *  This is already serialized from gotcha-init.
+ */
+
+void * __wrap_dlopen (const char *, int);
+int __wrap_dlclose (void *);
+
+static gotcha_wrappee_handle_t dlopen_handle;
+static gotcha_wrappee_handle_t dlclose_handle;
+
+static gotcha_binding_t dlopen_bindings [] = {
+    { "dlopen",  __wrap_dlopen,  &dlopen_handle },
+    { "dlclose", __wrap_dlclose, &dlclose_handle },
+};
+
+void
+monitor_gotcha_init_dlopen(void)
+{
+    gotcha_wrap(dlopen_bindings, 2, "libmonitor");
+}
+#endif
+
+//----------------------------------------------------------------------
+
+/*
+ *  Override dlopen.
+ */
+#if defined(MONITOR_PURE_PRELOAD)
+void * dlopen
+#else
+void * __wrap_dlopen
+#endif
+  (const char * name, int flags)
 {
 #if defined(MONITOR_PURE_PRELOAD)
-    monitor_init_dlopen();
+    monitor_preload_init_dlopen();
+
+#elif defined(MONITOR_GOTCHA_PRELOAD) || defined(MONITOR_GOTCHA_LINK)
+    dlopen_fcn_t * real_dlopen = gotcha_get_wrappee(dlopen_handle);
+
 #endif
 
     if (real_dlopen == NULL) {
@@ -116,11 +158,22 @@ dlopen(const char * name, int flags)
 
 //----------------------------------------------------------------------
 
-int
-dlclose(void * handle)
+/*
+ *  Override dlclose.
+ */
+#if defined(MONITOR_PURE_PRELOAD)
+int dlclose
+#else
+int __wrap_dlclose
+#endif
+  (void * handle)
 {
 #if defined(MONITOR_PURE_PRELOAD)
-    monitor_init_dlopen();
+    monitor_preload_init_dlopen();
+
+#elif defined(MONITOR_GOTCHA_PRELOAD) || defined(MONITOR_GOTCHA_LINK)
+    dlclose_fcn_t * real_dlclose = gotcha_get_wrappee(dlclose_handle);
+
 #endif
 
     if (real_dlclose == NULL) {

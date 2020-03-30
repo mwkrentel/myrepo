@@ -131,6 +131,10 @@ int __wrap_pthread_create
     GET_DLSYM_FUNC(real_pthread_create, "pthread_create");
 #endif
 
+#if defined(MONITOR_GOTCHA_PRELOAD) || defined(MONITOR_GOTCHA_LINK)
+    monitor_gotcha_init();
+#endif
+
     monitor_try_begin_process();
 
 #if defined(MONITOR_STATIC)
@@ -144,18 +148,26 @@ int __wrap_pthread_create
 
 //----------------------------------------------------------------------
 
-/*
- *  Preinit constructor to run gotcha-wrap on pthread_create().  This
- *  is run before library init constructors.
- *
- *  This is too early for the begin_process() callback.
- */
 #ifdef MONITOR_GOTCHA_LINK
+
+/*
+ *  Init and preinit constructors to turn on gotcha wrap for the
+ *  gotcha link case.
+ *
+ *  Preinit comes before the library init constructors.  We need to
+ *  wrap pthread_create() here in order to catch a new thread from an
+ *  init constructor before main().  But this is too early for all
+ *  wraps or the begin_process() callback.
+ */
 
 static gotcha_binding_t thread_bindings [] = {
     { "pthread_create", __wrap_pthread_create, &pthread_create_handle },
 };
 
+/*
+ *  Gotcha wrap pthread_create().  This is too early for the other
+ *  functions or for the begin process callback.
+ */
 void
 monitor_preinit_ctor(void)
 {
@@ -166,5 +178,15 @@ monitor_preinit_ctor(void)
 
 __attribute__ ((section(".preinit_array")))
 typeof(monitor_preinit_ctor) * monitor_preinit = monitor_preinit_ctor;
+
+/*
+ *  Gotcha wrap the rest of the functions.
+ */
+void __attribute__ ((constructor))
+monitor_init_ctor(void)
+{
+    monitor_gotcha_init();
+    monitor_try_begin_process();
+}
 
 #endif

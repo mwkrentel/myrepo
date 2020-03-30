@@ -15826,5 +15826,7 @@ $as_echo "$as_me: CPPFLAGS: $CPPFLAGS" >&6;}
 { $as_echo "$as_me:${as_lineno-$LINENO}: gotcha: $GOTCHA" >&5
 $as_echo "$as_me: gotcha: $GOTCHA" >&6;}
 
+{ $as_echo "$as_me:${as_lineno-$LINENO}: enable dlopen:   $enable_dlfcn" >&5
+$as_echo "$as_me: enable dlopen:   $enable_dlfcn" >&6;}
 { $as_echo "$as_me:${as_lineno-$LINENO}: start main type: $enable_start_main" >&5
 $as_echo "$as_me: start main type: $enable_start_main" >&6;}

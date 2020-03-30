@@ -94,6 +94,8 @@ host_triplet = @host@
 noinst_PROGRAMS = libmonitor-link.o$(EXEEXT) \
 	libmonitor-static.o$(EXEEXT)
 @MONITOR_COND_USE_DLOPEN_TRUE@am__append_1 = dlopen.c
+@MONITOR_COND_USE_DLOPEN_TRUE@am__append_2 = dlopen.c
+@MONITOR_COND_USE_DLOPEN_TRUE@am__append_3 = dlopen.c
 subdir = src
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/config/libtool.m4 \
@@ -142,7 +144,10 @@ libmonitor_preload_la_LIBADD =
 am__objects_1 = libmonitor_preload_la-main.lo \
 	libmonitor_preload_la-pthread.lo \
 	libmonitor_preload_la-callback.lo
-am_libmonitor_preload_la_OBJECTS = $(am__objects_1)
+@MONITOR_COND_USE_DLOPEN_TRUE@am__objects_2 =  \
+@MONITOR_COND_USE_DLOPEN_TRUE@	libmonitor_preload_la-dlopen.lo
+am_libmonitor_preload_la_OBJECTS = $(am__objects_1) \
+	libmonitor_preload_la-gotcha-init.lo $(am__objects_2)
 libmonitor_preload_la_OBJECTS = $(am_libmonitor_preload_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -153,12 +158,12 @@ libmonitor_preload_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(AM_CFLAGS) $(CFLAGS) $(libmonitor_preload_la_LDFLAGS) \
 	$(LDFLAGS) -o $@
 libmonitor_pure_preload_la_LIBADD =
-am__objects_2 = libmonitor_pure_preload_la-main.lo \
+am__objects_3 = libmonitor_pure_preload_la-main.lo \
 	libmonitor_pure_preload_la-pthread.lo \
 	libmonitor_pure_preload_la-callback.lo
-@MONITOR_COND_USE_DLOPEN_TRUE@am__objects_3 = libmonitor_pure_preload_la-dlopen.lo
-am_libmonitor_pure_preload_la_OBJECTS = $(am__objects_2) \
-	$(am__objects_3)
+@MONITOR_COND_USE_DLOPEN_TRUE@am__objects_4 = libmonitor_pure_preload_la-dlopen.lo
+am_libmonitor_pure_preload_la_OBJECTS = $(am__objects_3) \
+	$(am__objects_4)
 libmonitor_pure_preload_la_OBJECTS =  \
 	$(am_libmonitor_pure_preload_la_OBJECTS)
 libmonitor_pure_preload_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
@@ -166,16 +171,18 @@ libmonitor_pure_preload_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(AM_CFLAGS) $(CFLAGS) $(libmonitor_pure_preload_la_LDFLAGS) \
 	$(LDFLAGS) -o $@
 PROGRAMS = $(noinst_PROGRAMS)
-am__objects_4 = libmonitor_link_o-main.$(OBJEXT) \
+am__objects_5 = libmonitor_link_o-main.$(OBJEXT) \
 	libmonitor_link_o-pthread.$(OBJEXT) \
 	libmonitor_link_o-callback.$(OBJEXT)
-am_libmonitor_link_o_OBJECTS = $(am__objects_4)
+@MONITOR_COND_USE_DLOPEN_TRUE@am__objects_6 = libmonitor_link_o-dlopen.$(OBJEXT)
+am_libmonitor_link_o_OBJECTS = $(am__objects_5) \
+	libmonitor_link_o-gotcha-init.$(OBJEXT) $(am__objects_6)
 libmonitor_link_o_OBJECTS = $(am_libmonitor_link_o_OBJECTS)
 libmonitor_link_o_LDADD = $(LDADD)
-am__objects_5 = libmonitor_static_o-main.$(OBJEXT) \
+am__objects_7 = libmonitor_static_o-main.$(OBJEXT) \
 	libmonitor_static_o-pthread.$(OBJEXT) \
 	libmonitor_static_o-callback.$(OBJEXT)
-am_libmonitor_static_o_OBJECTS = $(am__objects_5)
+am_libmonitor_static_o_OBJECTS = $(am__objects_7)
 libmonitor_static_o_OBJECTS = $(am_libmonitor_static_o_OBJECTS)
 libmonitor_static_o_LDADD = $(LDADD)
 SCRIPTS = $(bin_SCRIPTS)
@@ -368,14 +375,16 @@ bin_SCRIPTS = $(MONITOR_SCRIPT_FILES)
 CLEANFILES = $(MONITOR_SCRIPT_FILES)
 include_HEADERS = monitor.h
 lib_LTLIBRARIES = libmonitor-preload.la libmonitor-pure-preload.la
-libmonitor_preload_la_SOURCES = $(MONITOR_SRC_FILES)
+libmonitor_preload_la_SOURCES = $(MONITOR_SRC_FILES) gotcha-init.c \
+	$(am__append_1)
 libmonitor_preload_la_CPPFLAGS = -DMONITOR_GOTCHA_PRELOAD $(GOTCHA_IFLAGS)
 libmonitor_preload_la_LDFLAGS = -ldl $(GOTCHA_LFLAGS) -Wl,-rpath=$(GOTCHA_LIBDIR)
 libmonitor_pure_preload_la_SOURCES = $(MONITOR_SRC_FILES) \
-	$(am__append_1)
+	$(am__append_2)
 libmonitor_pure_preload_la_CPPFLAGS = -DMONITOR_PURE_PRELOAD
 libmonitor_pure_preload_la_LDFLAGS = -ldl
-libmonitor_link_o_SOURCES = $(MONITOR_SRC_FILES)
+libmonitor_link_o_SOURCES = $(MONITOR_SRC_FILES) gotcha-init.c \
+	$(am__append_3)
 libmonitor_link_o_CPPFLAGS = -DMONITOR_GOTCHA_LINK $(GOTCHA_IFLAGS)
 libmonitor_static_o_SOURCES = $(MONITOR_SRC_FILES)
 libmonitor_static_o_CPPFLAGS = -DMONITOR_STATIC
@@ -533,9 +542,13 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmonitor_link_o-callback.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmonitor_link_o-dlopen.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmonitor_link_o-gotcha-init.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmonitor_link_o-main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmonitor_link_o-pthread.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmonitor_preload_la-callback.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmonitor_preload_la-dlopen.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmonitor_preload_la-gotcha-init.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmonitor_preload_la-main.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmonitor_preload_la-pthread.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmonitor_pure_preload_la-callback.Plo@am__quote@
@@ -587,6 +600,20 @@ libmonitor_preload_la-callback.lo: callback.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='callback.c' object='libmonitor_preload_la-callback.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_preload_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libmonitor_preload_la-callback.lo `test -f 'callback.c' || echo '$(srcdir)/'`callback.c
+
+libmonitor_preload_la-gotcha-init.lo: gotcha-init.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_preload_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libmonitor_preload_la-gotcha-init.lo -MD -MP -MF $(DEPDIR)/libmonitor_preload_la-gotcha-init.Tpo -c -o libmonitor_preload_la-gotcha-init.lo `test -f 'gotcha-init.c' || echo '$(srcdir)/'`gotcha-init.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libmonitor_preload_la-gotcha-init.Tpo $(DEPDIR)/libmonitor_preload_la-gotcha-init.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='gotcha-init.c' object='libmonitor_preload_la-gotcha-init.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_preload_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libmonitor_preload_la-gotcha-init.lo `test -f 'gotcha-init.c' || echo '$(srcdir)/'`gotcha-init.c
+
+libmonitor_preload_la-dlopen.lo: dlopen.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_preload_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libmonitor_preload_la-dlopen.lo -MD -MP -MF $(DEPDIR)/libmonitor_preload_la-dlopen.Tpo -c -o libmonitor_preload_la-dlopen.lo `test -f 'dlopen.c' || echo '$(srcdir)/'`dlopen.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libmonitor_preload_la-dlopen.Tpo $(DEPDIR)/libmonitor_preload_la-dlopen.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='dlopen.c' object='libmonitor_preload_la-dlopen.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_preload_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libmonitor_preload_la-dlopen.lo `test -f 'dlopen.c' || echo '$(srcdir)/'`dlopen.c
 
 libmonitor_pure_preload_la-main.lo: main.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_pure_preload_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libmonitor_pure_preload_la-main.lo -MD -MP -MF $(DEPDIR)/libmonitor_pure_preload_la-main.Tpo -c -o libmonitor_pure_preload_la-main.lo `test -f 'main.c' || echo '$(srcdir)/'`main.c
@@ -657,6 +684,34 @@ libmonitor_link_o-callback.obj: callback.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='callback.c' object='libmonitor_link_o-callback.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_link_o_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libmonitor_link_o-callback.obj `if test -f 'callback.c'; then $(CYGPATH_W) 'callback.c'; else $(CYGPATH_W) '$(srcdir)/callback.c'; fi`
+
+libmonitor_link_o-gotcha-init.o: gotcha-init.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_link_o_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libmonitor_link_o-gotcha-init.o -MD -MP -MF $(DEPDIR)/libmonitor_link_o-gotcha-init.Tpo -c -o libmonitor_link_o-gotcha-init.o `test -f 'gotcha-init.c' || echo '$(srcdir)/'`gotcha-init.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libmonitor_link_o-gotcha-init.Tpo $(DEPDIR)/libmonitor_link_o-gotcha-init.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='gotcha-init.c' object='libmonitor_link_o-gotcha-init.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_link_o_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libmonitor_link_o-gotcha-init.o `test -f 'gotcha-init.c' || echo '$(srcdir)/'`gotcha-init.c
+
+libmonitor_link_o-gotcha-init.obj: gotcha-init.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_link_o_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libmonitor_link_o-gotcha-init.obj -MD -MP -MF $(DEPDIR)/libmonitor_link_o-gotcha-init.Tpo -c -o libmonitor_link_o-gotcha-init.obj `if test -f 'gotcha-init.c'; then $(CYGPATH_W) 'gotcha-init.c'; else $(CYGPATH_W) '$(srcdir)/gotcha-init.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libmonitor_link_o-gotcha-init.Tpo $(DEPDIR)/libmonitor_link_o-gotcha-init.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='gotcha-init.c' object='libmonitor_link_o-gotcha-init.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_link_o_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libmonitor_link_o-gotcha-init.obj `if test -f 'gotcha-init.c'; then $(CYGPATH_W) 'gotcha-init.c'; else $(CYGPATH_W) '$(srcdir)/gotcha-init.c'; fi`
+
+libmonitor_link_o-dlopen.o: dlopen.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_link_o_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libmonitor_link_o-dlopen.o -MD -MP -MF $(DEPDIR)/libmonitor_link_o-dlopen.Tpo -c -o libmonitor_link_o-dlopen.o `test -f 'dlopen.c' || echo '$(srcdir)/'`dlopen.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libmonitor_link_o-dlopen.Tpo $(DEPDIR)/libmonitor_link_o-dlopen.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='dlopen.c' object='libmonitor_link_o-dlopen.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_link_o_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libmonitor_link_o-dlopen.o `test -f 'dlopen.c' || echo '$(srcdir)/'`dlopen.c
+
+libmonitor_link_o-dlopen.obj: dlopen.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_link_o_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libmonitor_link_o-dlopen.obj -MD -MP -MF $(DEPDIR)/libmonitor_link_o-dlopen.Tpo -c -o libmonitor_link_o-dlopen.obj `if test -f 'dlopen.c'; then $(CYGPATH_W) 'dlopen.c'; else $(CYGPATH_W) '$(srcdir)/dlopen.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libmonitor_link_o-dlopen.Tpo $(DEPDIR)/libmonitor_link_o-dlopen.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='dlopen.c' object='libmonitor_link_o-dlopen.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_link_o_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libmonitor_link_o-dlopen.obj `if test -f 'dlopen.c'; then $(CYGPATH_W) 'dlopen.c'; else $(CYGPATH_W) '$(srcdir)/dlopen.c'; fi`
 
 libmonitor_static_o-main.o: main.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_static_o_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libmonitor_static_o-main.o -MD -MP -MF $(DEPDIR)/libmonitor_static_o-main.Tpo -c -o libmonitor_static_o-main.o `test -f 'main.c' || echo '$(srcdir)/'`main.c

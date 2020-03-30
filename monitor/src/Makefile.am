@@ -48,7 +48,7 @@ include_HEADERS = monitor.h
 
 lib_LTLIBRARIES = libmonitor-preload.la libmonitor-pure-preload.la
 
-libmonitor_preload_la_SOURCES = $(MONITOR_SRC_FILES)
+libmonitor_preload_la_SOURCES = $(MONITOR_SRC_FILES) gotcha-init.c
 libmonitor_preload_la_CPPFLAGS = -DMONITOR_GOTCHA_PRELOAD $(GOTCHA_IFLAGS)
 libmonitor_preload_la_LDFLAGS = -ldl $(GOTCHA_LFLAGS) -Wl,-rpath=$(GOTCHA_LIBDIR)
 
@@ -61,14 +61,16 @@ libmonitor_pure_preload_la_LDFLAGS = -ldl
 
 noinst_PROGRAMS = libmonitor-link.o libmonitor-static.o
 
-libmonitor_link_o_SOURCES = $(MONITOR_SRC_FILES)
+libmonitor_link_o_SOURCES = $(MONITOR_SRC_FILES) gotcha-init.c
 libmonitor_link_o_CPPFLAGS = -DMONITOR_GOTCHA_LINK $(GOTCHA_IFLAGS)
 
 libmonitor_static_o_SOURCES = $(MONITOR_SRC_FILES)
 libmonitor_static_o_CPPFLAGS = -DMONITOR_STATIC
 
 if MONITOR_COND_USE_DLOPEN
+libmonitor_preload_la_SOURCES += dlopen.c
 libmonitor_pure_preload_la_SOURCES += dlopen.c
+libmonitor_link_o_SOURCES += dlopen.c
 endif
 
 install-exec-hook:

@@ -62,6 +62,10 @@ MONITOR_GOTCHA_PRELOAD, MONITOR_GOTCHA_LINK or MONITOR_STATIC
 MONITOR_GOTCHA_LINK or MONITOR_STATIC
 #endif
 
+#if defined(MONITOR_GOTCHA_PRELOAD) || defined(MONITOR_GOTCHA_LINK)
+#define MONITOR_GOTCHA_ANY
+#endif
+
 //----------------------------------------------------------------------
 
 #ifndef RTLD_NEXT
@@ -79,5 +83,8 @@ MONITOR_GOTCHA_LINK or MONITOR_STATIC
 //----------------------------------------------------------------------
 
 void monitor_try_begin_process(void);
+
+void monitor_gotcha_init(void);
+void monitor_gotcha_init_dlopen(void);
 
 #endif  // _MONITOR_COMMON_H_

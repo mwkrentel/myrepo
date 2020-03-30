@@ -278,4 +278,5 @@ AC_MSG_NOTICE([CPPFLAGS: $CPPFLAGS])
 
 AC_MSG_NOTICE([gotcha: $GOTCHA])
 
+AC_MSG_NOTICE([enable dlopen:   $enable_dlfcn])
 AC_MSG_NOTICE([start main type: $enable_start_main])

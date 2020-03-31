@@ -135,6 +135,8 @@ void * __wrap_dlopen
 #endif
   (const char * name, int flags)
 {
+    monitor_first_entry();
+
 #if defined(MONITOR_PURE_PRELOAD)
     monitor_preload_init_dlopen();
 
@@ -168,6 +170,8 @@ int __wrap_dlclose
 #endif
   (void * handle)
 {
+    monitor_first_entry();
+
 #if defined(MONITOR_PURE_PRELOAD)
     monitor_preload_init_dlopen();
 

@@ -35,37 +35,50 @@
 #include <stdio.h>
 
 #include "monitor.h"
+#include "monitor-common.h"
+
+#define DEBUG_PREFIX  "---> monitor: "
+
+#define MONITOR_DEBUG1(fmt) 			\
+    if (monitor_debug()) { 			\
+	fprintf(stderr, DEBUG_PREFIX fmt);	\
+    }
+
+#define MONITOR_DEBUG(fmt, ...) 		\
+    if (monitor_debug()) { 			\
+        fprintf(stderr, DEBUG_PREFIX fmt, __VA_ARGS__);  \
+    }
 
 //----------------------------------------------------------------------
 
 void  __attribute__ ((weak))
 monitor_begin_process_cb(void)
 {
-    printf("---> monitor: begin process\n");
+    MONITOR_DEBUG1("begin process\n");
 }
 
 void  __attribute__ ((weak))
 monitor_at_main_cb(void)
 {
-    printf("---> monitor: at main\n");
+    MONITOR_DEBUG1("at main\n");
 }
 
 void  __attribute__ ((weak))
 monitor_end_process_cb(void)
 {
-    printf("---> monitor: end process\n");
+    MONITOR_DEBUG1("end process\n");
 }
 
 void  __attribute__ ((weak))
 monitor_begin_thread_cb(void)
 {
-    printf("---> monitor: begin thread\n");
+    MONITOR_DEBUG1("begin thread\n");
 }
 
 void  __attribute__ ((weak))
 monitor_end_thread_cb(void)
 {
-    printf("---> monitor: end thread\n");
+    MONITOR_DEBUG1("end thread\n");
 }
 
 //----------------------------------------------------------------------
@@ -73,25 +86,25 @@ monitor_end_thread_cb(void)
 void * __attribute__ ((weak))
 monitor_pre_dlopen_cb(const char *name, int flags)
 {
-    printf("---> monitor: pre-dlopen (%s, %d)\n", name, flags);
+    MONITOR_DEBUG("pre-dlopen (%s, %d)\n", name, flags);
     return NULL;
 }
 
 void  __attribute__ ((weak))
 monitor_post_dlopen_cb(void *data, void * handle)
 {
-    printf("---> monitor: post-dlopen: %p\n", handle);
+    MONITOR_DEBUG("post-dlopen: %p\n", handle);
 }
 
 void * __attribute__ ((weak))
 monitor_pre_dlclose_cb(void * handle)
 {
-    printf("---> monitor: pre-dlclose (%p)\n", handle);
+    MONITOR_DEBUG("pre-dlclose (%p)\n", handle);
     return NULL;
 }
 
 void  __attribute__ ((weak))
 monitor_post_dlclose_cb(void *data, void * handle, int ret)
 {
-    printf("---> monitor: post-dlclose: %p  ret: %d\n", handle, ret);
+    MONITOR_DEBUG("post-dlclose: %p  ret: %d\n", handle, ret);
 }

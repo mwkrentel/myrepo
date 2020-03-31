@@ -96,6 +96,8 @@ __wrap_main(int argc, char **argv, char **envp  AUXVEC_DECL )
 {
     int ret;
 
+    monitor_first_entry();
+
 #if defined(MONITOR_GOTCHA_LINK)
     monitor_gotcha_init();
 #endif
@@ -135,6 +137,8 @@ __libc_start_main(int argc, char **argv, char **envp, void *auxp,
 {
     start_main_fcn_t *real_start_main = NULL;
 
+    monitor_first_entry();
+
     GET_DLSYM_FUNC(real_start_main, "__libc_start_main");
 
     real_main = (main_fcn_t *) stinfo[1];
@@ -165,6 +169,8 @@ __libc_start_main(main_fcn_t *main, int argc, char **argv, void *init,
 		  void *fini, void *rtld_fini, void *stack_end)
 {
     start_main_fcn_t *real_start_main = NULL;
+
+    monitor_first_entry();
 
     GET_DLSYM_FUNC(real_start_main, "__libc_start_main");
 

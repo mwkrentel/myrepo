@@ -121,6 +121,8 @@ int __wrap_pthread_create
 {
     int ret;
 
+    monitor_first_entry();
+
     struct monitor_thread_node *tn =
 	(struct monitor_thread_node *) malloc(sizeof(struct monitor_thread_node));
 
@@ -171,6 +173,8 @@ static gotcha_binding_t thread_bindings [] = {
 void
 monitor_preinit_ctor(void)
 {
+    monitor_first_entry();
+
     gotcha_wrap(thread_bindings, 1, "libmonitor");
 
     real_pthread_create = (pthread_create_fcn_t *) gotcha_get_wrappee(pthread_create_handle);

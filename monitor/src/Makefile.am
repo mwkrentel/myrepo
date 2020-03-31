@@ -38,7 +38,11 @@ GOTCHA_LIBDIR = @GOTCHA_LIBDIR@
 
 MONITOR_SCRIPT_FILES = monitor-run monitor-link
 
-MONITOR_SRC_FILES = main.c pthread.c callback.c
+MONITOR_SRC_FILES = 		\
+	callback.c 		\
+	main.c 			\
+	monitor-init.c 		\
+	pthread.c
 
 bin_SCRIPTS = $(MONITOR_SCRIPT_FILES)
 

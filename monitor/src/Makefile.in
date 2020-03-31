@@ -141,9 +141,10 @@ am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(bindir)" \
 	"$(DESTDIR)$(includedir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
 libmonitor_preload_la_LIBADD =
-am__objects_1 = libmonitor_preload_la-main.lo \
-	libmonitor_preload_la-pthread.lo \
-	libmonitor_preload_la-callback.lo
+am__objects_1 = libmonitor_preload_la-callback.lo \
+	libmonitor_preload_la-main.lo \
+	libmonitor_preload_la-monitor-init.lo \
+	libmonitor_preload_la-pthread.lo
 @MONITOR_COND_USE_DLOPEN_TRUE@am__objects_2 =  \
 @MONITOR_COND_USE_DLOPEN_TRUE@	libmonitor_preload_la-dlopen.lo
 am_libmonitor_preload_la_OBJECTS = $(am__objects_1) \
@@ -158,9 +159,10 @@ libmonitor_preload_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(AM_CFLAGS) $(CFLAGS) $(libmonitor_preload_la_LDFLAGS) \
 	$(LDFLAGS) -o $@
 libmonitor_pure_preload_la_LIBADD =
-am__objects_3 = libmonitor_pure_preload_la-main.lo \
-	libmonitor_pure_preload_la-pthread.lo \
-	libmonitor_pure_preload_la-callback.lo
+am__objects_3 = libmonitor_pure_preload_la-callback.lo \
+	libmonitor_pure_preload_la-main.lo \
+	libmonitor_pure_preload_la-monitor-init.lo \
+	libmonitor_pure_preload_la-pthread.lo
 @MONITOR_COND_USE_DLOPEN_TRUE@am__objects_4 = libmonitor_pure_preload_la-dlopen.lo
 am_libmonitor_pure_preload_la_OBJECTS = $(am__objects_3) \
 	$(am__objects_4)
@@ -171,17 +173,19 @@ libmonitor_pure_preload_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(AM_CFLAGS) $(CFLAGS) $(libmonitor_pure_preload_la_LDFLAGS) \
 	$(LDFLAGS) -o $@
 PROGRAMS = $(noinst_PROGRAMS)
-am__objects_5 = libmonitor_link_o-main.$(OBJEXT) \
-	libmonitor_link_o-pthread.$(OBJEXT) \
-	libmonitor_link_o-callback.$(OBJEXT)
+am__objects_5 = libmonitor_link_o-callback.$(OBJEXT) \
+	libmonitor_link_o-main.$(OBJEXT) \
+	libmonitor_link_o-monitor-init.$(OBJEXT) \
+	libmonitor_link_o-pthread.$(OBJEXT)
 @MONITOR_COND_USE_DLOPEN_TRUE@am__objects_6 = libmonitor_link_o-dlopen.$(OBJEXT)
 am_libmonitor_link_o_OBJECTS = $(am__objects_5) \
 	libmonitor_link_o-gotcha-init.$(OBJEXT) $(am__objects_6)
 libmonitor_link_o_OBJECTS = $(am_libmonitor_link_o_OBJECTS)
 libmonitor_link_o_LDADD = $(LDADD)
-am__objects_7 = libmonitor_static_o-main.$(OBJEXT) \
-	libmonitor_static_o-pthread.$(OBJEXT) \
-	libmonitor_static_o-callback.$(OBJEXT)
+am__objects_7 = libmonitor_static_o-callback.$(OBJEXT) \
+	libmonitor_static_o-main.$(OBJEXT) \
+	libmonitor_static_o-monitor-init.$(OBJEXT) \
+	libmonitor_static_o-pthread.$(OBJEXT)
 am_libmonitor_static_o_OBJECTS = $(am__objects_7)
 libmonitor_static_o_OBJECTS = $(am_libmonitor_static_o_OBJECTS)
 libmonitor_static_o_LDADD = $(LDADD)
@@ -370,7 +374,12 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 MONITOR_SCRIPT_FILES = monitor-run monitor-link
-MONITOR_SRC_FILES = main.c pthread.c callback.c
+MONITOR_SRC_FILES = \
+	callback.c 		\
+	main.c 			\
+	monitor-init.c 		\
+	pthread.c
+
 bin_SCRIPTS = $(MONITOR_SCRIPT_FILES)
 CLEANFILES = $(MONITOR_SCRIPT_FILES)
 include_HEADERS = monitor.h
@@ -545,18 +554,22 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmonitor_link_o-dlopen.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmonitor_link_o-gotcha-init.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmonitor_link_o-main.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmonitor_link_o-monitor-init.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmonitor_link_o-pthread.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmonitor_preload_la-callback.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmonitor_preload_la-dlopen.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmonitor_preload_la-gotcha-init.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmonitor_preload_la-main.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmonitor_preload_la-monitor-init.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmonitor_preload_la-pthread.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmonitor_pure_preload_la-callback.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmonitor_pure_preload_la-dlopen.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmonitor_pure_preload_la-main.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmonitor_pure_preload_la-monitor-init.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmonitor_pure_preload_la-pthread.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmonitor_static_o-callback.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmonitor_static_o-main.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmonitor_static_o-monitor-init.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmonitor_static_o-pthread.Po@am__quote@
 
 .c.o:
@@ -580,6 +593,13 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LTCOMPILE) -c -o $@ $<
 
+libmonitor_preload_la-callback.lo: callback.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_preload_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libmonitor_preload_la-callback.lo -MD -MP -MF $(DEPDIR)/libmonitor_preload_la-callback.Tpo -c -o libmonitor_preload_la-callback.lo `test -f 'callback.c' || echo '$(srcdir)/'`callback.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libmonitor_preload_la-callback.Tpo $(DEPDIR)/libmonitor_preload_la-callback.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='callback.c' object='libmonitor_preload_la-callback.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_preload_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libmonitor_preload_la-callback.lo `test -f 'callback.c' || echo '$(srcdir)/'`callback.c
+
 libmonitor_preload_la-main.lo: main.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_preload_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libmonitor_preload_la-main.lo -MD -MP -MF $(DEPDIR)/libmonitor_preload_la-main.Tpo -c -o libmonitor_preload_la-main.lo `test -f 'main.c' || echo '$(srcdir)/'`main.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libmonitor_preload_la-main.Tpo $(DEPDIR)/libmonitor_preload_la-main.Plo
@@ -587,19 +607,19 @@ libmonitor_preload_la-main.lo: main.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_preload_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libmonitor_preload_la-main.lo `test -f 'main.c' || echo '$(srcdir)/'`main.c
 
+libmonitor_preload_la-monitor-init.lo: monitor-init.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_preload_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libmonitor_preload_la-monitor-init.lo -MD -MP -MF $(DEPDIR)/libmonitor_preload_la-monitor-init.Tpo -c -o libmonitor_preload_la-monitor-init.lo `test -f 'monitor-init.c' || echo '$(srcdir)/'`monitor-init.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libmonitor_preload_la-monitor-init.Tpo $(DEPDIR)/libmonitor_preload_la-monitor-init.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='monitor-init.c' object='libmonitor_preload_la-monitor-init.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_preload_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libmonitor_preload_la-monitor-init.lo `test -f 'monitor-init.c' || echo '$(srcdir)/'`monitor-init.c
+
 libmonitor_preload_la-pthread.lo: pthread.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_preload_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libmonitor_preload_la-pthread.lo -MD -MP -MF $(DEPDIR)/libmonitor_preload_la-pthread.Tpo -c -o libmonitor_preload_la-pthread.lo `test -f 'pthread.c' || echo '$(srcdir)/'`pthread.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libmonitor_preload_la-pthread.Tpo $(DEPDIR)/libmonitor_preload_la-pthread.Plo
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='pthread.c' object='libmonitor_preload_la-pthread.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_preload_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libmonitor_preload_la-pthread.lo `test -f 'pthread.c' || echo '$(srcdir)/'`pthread.c
-
-libmonitor_preload_la-callback.lo: callback.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_preload_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libmonitor_preload_la-callback.lo -MD -MP -MF $(DEPDIR)/libmonitor_preload_la-callback.Tpo -c -o libmonitor_preload_la-callback.lo `test -f 'callback.c' || echo '$(srcdir)/'`callback.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libmonitor_preload_la-callback.Tpo $(DEPDIR)/libmonitor_preload_la-callback.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='callback.c' object='libmonitor_preload_la-callback.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_preload_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libmonitor_preload_la-callback.lo `test -f 'callback.c' || echo '$(srcdir)/'`callback.c
 
 libmonitor_preload_la-gotcha-init.lo: gotcha-init.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_preload_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libmonitor_preload_la-gotcha-init.lo -MD -MP -MF $(DEPDIR)/libmonitor_preload_la-gotcha-init.Tpo -c -o libmonitor_preload_la-gotcha-init.lo `test -f 'gotcha-init.c' || echo '$(srcdir)/'`gotcha-init.c
@@ -615,12 +635,26 @@ libmonitor_preload_la-dlopen.lo: dlopen.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_preload_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libmonitor_preload_la-dlopen.lo `test -f 'dlopen.c' || echo '$(srcdir)/'`dlopen.c
 
+libmonitor_pure_preload_la-callback.lo: callback.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_pure_preload_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libmonitor_pure_preload_la-callback.lo -MD -MP -MF $(DEPDIR)/libmonitor_pure_preload_la-callback.Tpo -c -o libmonitor_pure_preload_la-callback.lo `test -f 'callback.c' || echo '$(srcdir)/'`callback.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libmonitor_pure_preload_la-callback.Tpo $(DEPDIR)/libmonitor_pure_preload_la-callback.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='callback.c' object='libmonitor_pure_preload_la-callback.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_pure_preload_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libmonitor_pure_preload_la-callback.lo `test -f 'callback.c' || echo '$(srcdir)/'`callback.c
+
 libmonitor_pure_preload_la-main.lo: main.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_pure_preload_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libmonitor_pure_preload_la-main.lo -MD -MP -MF $(DEPDIR)/libmonitor_pure_preload_la-main.Tpo -c -o libmonitor_pure_preload_la-main.lo `test -f 'main.c' || echo '$(srcdir)/'`main.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libmonitor_pure_preload_la-main.Tpo $(DEPDIR)/libmonitor_pure_preload_la-main.Plo
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='main.c' object='libmonitor_pure_preload_la-main.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_pure_preload_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libmonitor_pure_preload_la-main.lo `test -f 'main.c' || echo '$(srcdir)/'`main.c
+
+libmonitor_pure_preload_la-monitor-init.lo: monitor-init.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_pure_preload_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libmonitor_pure_preload_la-monitor-init.lo -MD -MP -MF $(DEPDIR)/libmonitor_pure_preload_la-monitor-init.Tpo -c -o libmonitor_pure_preload_la-monitor-init.lo `test -f 'monitor-init.c' || echo '$(srcdir)/'`monitor-init.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libmonitor_pure_preload_la-monitor-init.Tpo $(DEPDIR)/libmonitor_pure_preload_la-monitor-init.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='monitor-init.c' object='libmonitor_pure_preload_la-monitor-init.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_pure_preload_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libmonitor_pure_preload_la-monitor-init.lo `test -f 'monitor-init.c' || echo '$(srcdir)/'`monitor-init.c
 
 libmonitor_pure_preload_la-pthread.lo: pthread.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_pure_preload_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libmonitor_pure_preload_la-pthread.lo -MD -MP -MF $(DEPDIR)/libmonitor_pure_preload_la-pthread.Tpo -c -o libmonitor_pure_preload_la-pthread.lo `test -f 'pthread.c' || echo '$(srcdir)/'`pthread.c
@@ -629,19 +663,26 @@ libmonitor_pure_preload_la-pthread.lo: pthread.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_pure_preload_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libmonitor_pure_preload_la-pthread.lo `test -f 'pthread.c' || echo '$(srcdir)/'`pthread.c
 
-libmonitor_pure_preload_la-callback.lo: callback.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_pure_preload_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libmonitor_pure_preload_la-callback.lo -MD -MP -MF $(DEPDIR)/libmonitor_pure_preload_la-callback.Tpo -c -o libmonitor_pure_preload_la-callback.lo `test -f 'callback.c' || echo '$(srcdir)/'`callback.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libmonitor_pure_preload_la-callback.Tpo $(DEPDIR)/libmonitor_pure_preload_la-callback.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='callback.c' object='libmonitor_pure_preload_la-callback.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_pure_preload_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libmonitor_pure_preload_la-callback.lo `test -f 'callback.c' || echo '$(srcdir)/'`callback.c
-
 libmonitor_pure_preload_la-dlopen.lo: dlopen.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_pure_preload_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libmonitor_pure_preload_la-dlopen.lo -MD -MP -MF $(DEPDIR)/libmonitor_pure_preload_la-dlopen.Tpo -c -o libmonitor_pure_preload_la-dlopen.lo `test -f 'dlopen.c' || echo '$(srcdir)/'`dlopen.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libmonitor_pure_preload_la-dlopen.Tpo $(DEPDIR)/libmonitor_pure_preload_la-dlopen.Plo
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='dlopen.c' object='libmonitor_pure_preload_la-dlopen.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_pure_preload_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libmonitor_pure_preload_la-dlopen.lo `test -f 'dlopen.c' || echo '$(srcdir)/'`dlopen.c
+
+libmonitor_link_o-callback.o: callback.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_link_o_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libmonitor_link_o-callback.o -MD -MP -MF $(DEPDIR)/libmonitor_link_o-callback.Tpo -c -o libmonitor_link_o-callback.o `test -f 'callback.c' || echo '$(srcdir)/'`callback.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libmonitor_link_o-callback.Tpo $(DEPDIR)/libmonitor_link_o-callback.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='callback.c' object='libmonitor_link_o-callback.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_link_o_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libmonitor_link_o-callback.o `test -f 'callback.c' || echo '$(srcdir)/'`callback.c
+
+libmonitor_link_o-callback.obj: callback.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_link_o_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libmonitor_link_o-callback.obj -MD -MP -MF $(DEPDIR)/libmonitor_link_o-callback.Tpo -c -o libmonitor_link_o-callback.obj `if test -f 'callback.c'; then $(CYGPATH_W) 'callback.c'; else $(CYGPATH_W) '$(srcdir)/callback.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libmonitor_link_o-callback.Tpo $(DEPDIR)/libmonitor_link_o-callback.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='callback.c' object='libmonitor_link_o-callback.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_link_o_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libmonitor_link_o-callback.obj `if test -f 'callback.c'; then $(CYGPATH_W) 'callback.c'; else $(CYGPATH_W) '$(srcdir)/callback.c'; fi`
 
 libmonitor_link_o-main.o: main.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_link_o_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libmonitor_link_o-main.o -MD -MP -MF $(DEPDIR)/libmonitor_link_o-main.Tpo -c -o libmonitor_link_o-main.o `test -f 'main.c' || echo '$(srcdir)/'`main.c
@@ -657,6 +698,20 @@ libmonitor_link_o-main.obj: main.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_link_o_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libmonitor_link_o-main.obj `if test -f 'main.c'; then $(CYGPATH_W) 'main.c'; else $(CYGPATH_W) '$(srcdir)/main.c'; fi`
 
+libmonitor_link_o-monitor-init.o: monitor-init.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_link_o_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libmonitor_link_o-monitor-init.o -MD -MP -MF $(DEPDIR)/libmonitor_link_o-monitor-init.Tpo -c -o libmonitor_link_o-monitor-init.o `test -f 'monitor-init.c' || echo '$(srcdir)/'`monitor-init.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libmonitor_link_o-monitor-init.Tpo $(DEPDIR)/libmonitor_link_o-monitor-init.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='monitor-init.c' object='libmonitor_link_o-monitor-init.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_link_o_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libmonitor_link_o-monitor-init.o `test -f 'monitor-init.c' || echo '$(srcdir)/'`monitor-init.c
+
+libmonitor_link_o-monitor-init.obj: monitor-init.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_link_o_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libmonitor_link_o-monitor-init.obj -MD -MP -MF $(DEPDIR)/libmonitor_link_o-monitor-init.Tpo -c -o libmonitor_link_o-monitor-init.obj `if test -f 'monitor-init.c'; then $(CYGPATH_W) 'monitor-init.c'; else $(CYGPATH_W) '$(srcdir)/monitor-init.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libmonitor_link_o-monitor-init.Tpo $(DEPDIR)/libmonitor_link_o-monitor-init.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='monitor-init.c' object='libmonitor_link_o-monitor-init.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_link_o_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libmonitor_link_o-monitor-init.obj `if test -f 'monitor-init.c'; then $(CYGPATH_W) 'monitor-init.c'; else $(CYGPATH_W) '$(srcdir)/monitor-init.c'; fi`
+
 libmonitor_link_o-pthread.o: pthread.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_link_o_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libmonitor_link_o-pthread.o -MD -MP -MF $(DEPDIR)/libmonitor_link_o-pthread.Tpo -c -o libmonitor_link_o-pthread.o `test -f 'pthread.c' || echo '$(srcdir)/'`pthread.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libmonitor_link_o-pthread.Tpo $(DEPDIR)/libmonitor_link_o-pthread.Po
@@ -670,20 +725,6 @@ libmonitor_link_o-pthread.obj: pthread.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='pthread.c' object='libmonitor_link_o-pthread.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_link_o_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libmonitor_link_o-pthread.obj `if test -f 'pthread.c'; then $(CYGPATH_W) 'pthread.c'; else $(CYGPATH_W) '$(srcdir)/pthread.c'; fi`
-
-libmonitor_link_o-callback.o: callback.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_link_o_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libmonitor_link_o-callback.o -MD -MP -MF $(DEPDIR)/libmonitor_link_o-callback.Tpo -c -o libmonitor_link_o-callback.o `test -f 'callback.c' || echo '$(srcdir)/'`callback.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libmonitor_link_o-callback.Tpo $(DEPDIR)/libmonitor_link_o-callback.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='callback.c' object='libmonitor_link_o-callback.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_link_o_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libmonitor_link_o-callback.o `test -f 'callback.c' || echo '$(srcdir)/'`callback.c
-
-libmonitor_link_o-callback.obj: callback.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_link_o_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libmonitor_link_o-callback.obj -MD -MP -MF $(DEPDIR)/libmonitor_link_o-callback.Tpo -c -o libmonitor_link_o-callback.obj `if test -f 'callback.c'; then $(CYGPATH_W) 'callback.c'; else $(CYGPATH_W) '$(srcdir)/callback.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libmonitor_link_o-callback.Tpo $(DEPDIR)/libmonitor_link_o-callback.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='callback.c' object='libmonitor_link_o-callback.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_link_o_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libmonitor_link_o-callback.obj `if test -f 'callback.c'; then $(CYGPATH_W) 'callback.c'; else $(CYGPATH_W) '$(srcdir)/callback.c'; fi`
 
 libmonitor_link_o-gotcha-init.o: gotcha-init.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_link_o_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libmonitor_link_o-gotcha-init.o -MD -MP -MF $(DEPDIR)/libmonitor_link_o-gotcha-init.Tpo -c -o libmonitor_link_o-gotcha-init.o `test -f 'gotcha-init.c' || echo '$(srcdir)/'`gotcha-init.c
@@ -713,6 +754,20 @@ libmonitor_link_o-dlopen.obj: dlopen.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_link_o_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libmonitor_link_o-dlopen.obj `if test -f 'dlopen.c'; then $(CYGPATH_W) 'dlopen.c'; else $(CYGPATH_W) '$(srcdir)/dlopen.c'; fi`
 
+libmonitor_static_o-callback.o: callback.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_static_o_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libmonitor_static_o-callback.o -MD -MP -MF $(DEPDIR)/libmonitor_static_o-callback.Tpo -c -o libmonitor_static_o-callback.o `test -f 'callback.c' || echo '$(srcdir)/'`callback.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libmonitor_static_o-callback.Tpo $(DEPDIR)/libmonitor_static_o-callback.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='callback.c' object='libmonitor_static_o-callback.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_static_o_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libmonitor_static_o-callback.o `test -f 'callback.c' || echo '$(srcdir)/'`callback.c
+
+libmonitor_static_o-callback.obj: callback.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_static_o_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libmonitor_static_o-callback.obj -MD -MP -MF $(DEPDIR)/libmonitor_static_o-callback.Tpo -c -o libmonitor_static_o-callback.obj `if test -f 'callback.c'; then $(CYGPATH_W) 'callback.c'; else $(CYGPATH_W) '$(srcdir)/callback.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libmonitor_static_o-callback.Tpo $(DEPDIR)/libmonitor_static_o-callback.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='callback.c' object='libmonitor_static_o-callback.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_static_o_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libmonitor_static_o-callback.obj `if test -f 'callback.c'; then $(CYGPATH_W) 'callback.c'; else $(CYGPATH_W) '$(srcdir)/callback.c'; fi`
+
 libmonitor_static_o-main.o: main.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_static_o_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libmonitor_static_o-main.o -MD -MP -MF $(DEPDIR)/libmonitor_static_o-main.Tpo -c -o libmonitor_static_o-main.o `test -f 'main.c' || echo '$(srcdir)/'`main.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libmonitor_static_o-main.Tpo $(DEPDIR)/libmonitor_static_o-main.Po
@@ -727,6 +782,20 @@ libmonitor_static_o-main.obj: main.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_static_o_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libmonitor_static_o-main.obj `if test -f 'main.c'; then $(CYGPATH_W) 'main.c'; else $(CYGPATH_W) '$(srcdir)/main.c'; fi`
 
+libmonitor_static_o-monitor-init.o: monitor-init.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_static_o_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libmonitor_static_o-monitor-init.o -MD -MP -MF $(DEPDIR)/libmonitor_static_o-monitor-init.Tpo -c -o libmonitor_static_o-monitor-init.o `test -f 'monitor-init.c' || echo '$(srcdir)/'`monitor-init.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libmonitor_static_o-monitor-init.Tpo $(DEPDIR)/libmonitor_static_o-monitor-init.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='monitor-init.c' object='libmonitor_static_o-monitor-init.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_static_o_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libmonitor_static_o-monitor-init.o `test -f 'monitor-init.c' || echo '$(srcdir)/'`monitor-init.c
+
+libmonitor_static_o-monitor-init.obj: monitor-init.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_static_o_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libmonitor_static_o-monitor-init.obj -MD -MP -MF $(DEPDIR)/libmonitor_static_o-monitor-init.Tpo -c -o libmonitor_static_o-monitor-init.obj `if test -f 'monitor-init.c'; then $(CYGPATH_W) 'monitor-init.c'; else $(CYGPATH_W) '$(srcdir)/monitor-init.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libmonitor_static_o-monitor-init.Tpo $(DEPDIR)/libmonitor_static_o-monitor-init.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='monitor-init.c' object='libmonitor_static_o-monitor-init.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_static_o_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libmonitor_static_o-monitor-init.obj `if test -f 'monitor-init.c'; then $(CYGPATH_W) 'monitor-init.c'; else $(CYGPATH_W) '$(srcdir)/monitor-init.c'; fi`
+
 libmonitor_static_o-pthread.o: pthread.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_static_o_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libmonitor_static_o-pthread.o -MD -MP -MF $(DEPDIR)/libmonitor_static_o-pthread.Tpo -c -o libmonitor_static_o-pthread.o `test -f 'pthread.c' || echo '$(srcdir)/'`pthread.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libmonitor_static_o-pthread.Tpo $(DEPDIR)/libmonitor_static_o-pthread.Po
@@ -740,20 +809,6 @@ libmonitor_static_o-pthread.obj: pthread.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='pthread.c' object='libmonitor_static_o-pthread.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_static_o_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libmonitor_static_o-pthread.obj `if test -f 'pthread.c'; then $(CYGPATH_W) 'pthread.c'; else $(CYGPATH_W) '$(srcdir)/pthread.c'; fi`
-
-libmonitor_static_o-callback.o: callback.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_static_o_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libmonitor_static_o-callback.o -MD -MP -MF $(DEPDIR)/libmonitor_static_o-callback.Tpo -c -o libmonitor_static_o-callback.o `test -f 'callback.c' || echo '$(srcdir)/'`callback.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libmonitor_static_o-callback.Tpo $(DEPDIR)/libmonitor_static_o-callback.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='callback.c' object='libmonitor_static_o-callback.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_static_o_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libmonitor_static_o-callback.o `test -f 'callback.c' || echo '$(srcdir)/'`callback.c
-
-libmonitor_static_o-callback.obj: callback.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_static_o_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libmonitor_static_o-callback.obj -MD -MP -MF $(DEPDIR)/libmonitor_static_o-callback.Tpo -c -o libmonitor_static_o-callback.obj `if test -f 'callback.c'; then $(CYGPATH_W) 'callback.c'; else $(CYGPATH_W) '$(srcdir)/callback.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libmonitor_static_o-callback.Tpo $(DEPDIR)/libmonitor_static_o-callback.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='callback.c' object='libmonitor_static_o-callback.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libmonitor_static_o_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libmonitor_static_o-callback.obj `if test -f 'callback.c'; then $(CYGPATH_W) 'callback.c'; else $(CYGPATH_W) '$(srcdir)/callback.c'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo

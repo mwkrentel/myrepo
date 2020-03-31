@@ -1,5 +1,5 @@
 /*
- *  Internal shared declarations.
+ *  Monitor init functions.
  *
  *  Copyright (c) 2019-2020, Rice University.
  *  All rights reserved.
@@ -30,63 +30,77 @@
  *  whether in contract, strict liability, or tort (including negligence
  *  or otherwise) arising in any way out of the use of this software, even
  *  if advised of the possibility of such damage.
+ *
+ *  ----------------------------------------------------------------------
+ *
+ *  Serialize the first time we enter a monitor function through this
+ *  file.
  */
 
-#ifndef _MONITOR_COMMON_H_
-#define _MONITOR_COMMON_H_
-
-#include <dlfcn.h>
+#include <sys/types.h>
 #include <err.h>
 #include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 #include "monitor-config.h"
+#include "monitor-common.h"
+#include "monitor.h"
+
+#define MONITOR_DEBUG_VAR  "MONITOR_DEBUG"
+
+static int monitor_debug_flag = 0;
+
+static volatile int monitor_init_start = 0;
+static volatile int monitor_init_done = 0;
+
+//----------------------------------------------------------------------
+
+int
+monitor_debug(void)
+{
+    return monitor_debug_flag;
+}
+
+//----------------------------------------------------------------------
+
+static void
+monitor_init(void)
+{
+    char * str = getenv(MONITOR_DEBUG_VAR);
+
+    if (str != NULL) {
+	int val = atoi(str);
+
+	if (val != 0) {
+	    monitor_debug_flag = 1;
+	}
+    }
+}
+
+//----------------------------------------------------------------------
 
 /*
- *  There are four build cases and exactly one of these must be
- *  defined:
- *    MONITOR_PURE_PRELOAD, MONITOR_GOTCHA_PRELOAD,
- *    MONITOR_GOTCHA_LINK or MONITOR_STATIC.
+ *  The first thread to get here runs monitor init.  The other threads
+ *  wait until init finishes.
  */
-#if (defined(MONITOR_PURE_PRELOAD) && defined(MONITOR_GOTCHA_PRELOAD))     \
-    || (defined(MONITOR_PURE_PRELOAD) && defined(MONITOR_GOTCHA_LINK))     \
-    || (defined(MONITOR_PURE_PRELOAD) && defined(MONITOR_STATIC))          \
-    || (defined(MONITOR_GOTCHA_PRELOAD) && defined(MONITOR_GOTCHA_LINK))   \
-    || (defined(MONITOR_GOTCHA_PRELOAD) && defined(MONITOR_STATIC))        \
-    || (defined(MONITOR_GOTCHA_LINK) && defined(MONITOR_STATIC))
-#error cannot define more than one of: MONITOR_PURE_PRELOAD, \
-MONITOR_GOTCHA_PRELOAD, MONITOR_GOTCHA_LINK or MONITOR_STATIC
-#endif
-#if !defined(MONITOR_PURE_PRELOAD) && !defined(MONITOR_GOTCHA_PRELOAD)     \
-    && !defined(MONITOR_GOTCHA_LINK) && !defined(MONITOR_STATIC)
-#error must define one of: MONITOR_PURE_PRELOAD, MONITOR_GOTCHA_PRELOAD, \
-MONITOR_GOTCHA_LINK or MONITOR_STATIC
-#endif
-
-#if defined(MONITOR_GOTCHA_PRELOAD) || defined(MONITOR_GOTCHA_LINK)
-#define MONITOR_GOTCHA_ANY
-#endif
-
-//----------------------------------------------------------------------
-
-#ifndef RTLD_NEXT
-#define RTLD_NEXT  ((void *) -1l)
-#endif
-
-#define GET_DLSYM_FUNC(var, name)		\
-    if ( var == NULL ) {			\
-        var = dlsym(RTLD_NEXT, name);		\
-	if ( var == NULL ) {			\
-	    errx(1, "dlsym(" name ")failed");	\
-	}					\
+void
+monitor_first_entry(void)
+{
+    if (monitor_init_done) {
+	return;
     }
 
-//----------------------------------------------------------------------
+    if (__sync_bool_compare_and_swap(&monitor_init_start, 0, 1))
+    {
+	monitor_init();
 
-int  monitor_debug(void);
-void monitor_first_entry(void);
-void monitor_try_begin_process(void);
+	__sync_synchronize();
 
-void monitor_gotcha_init(void);
-void monitor_gotcha_init_dlopen(void);
-
-#endif  // _MONITOR_COMMON_H_
+	monitor_init_done = 1;
+    }
+    else {
+	while (! monitor_init_done)
+	    ;
+    }
+}

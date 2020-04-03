@@ -173,8 +173,6 @@ static gotcha_binding_t thread_bindings [] = {
 void
 monitor_preinit_ctor(void)
 {
-    monitor_first_entry();
-
     gotcha_wrap(thread_bindings, 1, "libmonitor");
 
     real_pthread_create = (pthread_create_fcn_t *) gotcha_get_wrappee(pthread_create_handle);
@@ -189,6 +187,7 @@ typeof(monitor_preinit_ctor) * monitor_preinit = monitor_preinit_ctor;
 void __attribute__ ((constructor))
 monitor_init_ctor(void)
 {
+    monitor_first_entry();
     monitor_gotcha_init();
     monitor_try_begin_process();
 }

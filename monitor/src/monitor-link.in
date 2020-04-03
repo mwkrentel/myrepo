@@ -96,12 +96,13 @@ do
 	    ;;
 
 	-i | -insert | --insert )
-	    test "x$2" != x || die "missing argument: $*"
+	    test "x$2" != x || die "missing insert file"
+	    test -f "$2" || die "unable to find insert file: $2"
 	    insert_files="${insert_files} $2"
 	    shift ; shift
 	    ;;
 
-	-S | --static )
+	-S | -static | --static )
 	    static=yes
 	    shift
 	    ;;
@@ -131,6 +132,8 @@ done
 #  Construct the new link line and run it.  Must have at least a
 #  compiler.
 #
+#  FIXME: pthread should be conditional on the application.
+#
 test "x$1" != x || usage
 
 if test "$static" = yes
@@ -139,14 +142,16 @@ then
 	-Wl,--wrap=main  \
 	-Wl,--wrap=pthread_create  \
 	"$monitor_static"  \
-	$insert_files
+	$insert_files  \
+	-lpthread
 else
     set -- "$@"  \
 	-Wl,--wrap=main  \
 	"$monitor_link"  \
 	$insert_files  \
 	"-L$gotcha_libdir" -lgotcha  \
-	"-Wl,-rpath=$gotcha_libdir"
+	"-Wl,-rpath=$gotcha_libdir"  \
+	-lpthread
 fi
 
 if test "$verbose" = yes ; then

@@ -77,6 +77,10 @@ TODO
 
 11. investigate dlsym() for gotcha and pure preload.
 
+12. in monitor-link, make -lpthread conditional on the application.
+
+13. apparently, preinit is too early for getenv().
+
 ------------------------------------------------------------
 
 DONE
